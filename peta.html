@@ -1,0 +1,24 @@
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<h1 class="text-2xl font-extrabold mb-3">Peta Proyek</h1>
+<div class="flex flex-wrap gap-2 mb-3">
+  <select id="filterSektor" class="border rounded p-2">
+    <option>Semua</option>
+    <option>Pendidikan</option>
+    <option>Kesehatan</option>
+    <option>Drainase</option>
+    <option>Jalan</option>
+    <option>Kantor Pelayanan</option>
+    <option>Ruang Publik</option>
+    <option>Olahraga</option>
+    <option>Sosial</option>
+  </select>
+  <select id="filterTahun" class="border rounded p-2">
+    <option>Semua</option>
+    <option>2026</option>
+    <option>2025</option>
+  </select>
+  <input id="cari" type="search" placeholder="Cari nama proyek…" class="border rounded p-2 flex-1">
+</div>
+<div id="peta" class="rounded-xl" style="height:70vh"></div>
