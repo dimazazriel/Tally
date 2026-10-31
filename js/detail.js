@@ -39,4 +39,8 @@ fetch('data/proyek.json')
       <a href="lapor.html?id=${p.id}" class="inline-block mt-4 bg-slate-900 text-white px-4 py-2 rounded">
         Laporkan kondisi di lapangan
       </a>`;
+  })
+    .catch((err) => {
+    document.getElementById('struk').textContent = 'Error: ' + err.message;
+    console.error(err);;
   });
