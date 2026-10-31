@@ -1,7 +1,10 @@
 const id = new URLSearchParams(location.search).get('id');
 
 fetch('data/proyek.json')
-  .then((res) => res.json())
+  .then((res) => {
+    if (!res.ok) throw new Error('Gagal memuat proyek.json: ' + res.status);
+    return res.json();
+  })
   .then((data) => {
     const wadah = document.getElementById('struk');
     const p = data.find((x) => x.id === id);
