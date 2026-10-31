@@ -1,0 +1,148 @@
+{
+  "kota": "Kota Depok",
+  "tahun": 2025,
+  "status": "Realisasi tahun anggaran 2025 (laporan keuangan audited, CaLK 2025)",
+  "sumber": "Catatan atas Laporan Keuangan (CaLK) Pemerintah Kota Depok TA 2025 — PPID Kota Depok",
+  "sumberUrl": "https://ppid.depok.go.id/wp-content/uploads/2026/08/2.-CALK-2025.pdf",
+  "diaksesTanggal": "2026-10-24",
+  "belanja": [
+    {
+      "bidang": "Gaji & tunjangan pegawai",
+      "kelompok": "Belanja Pegawai",
+      "nilai": 1361423795348.0
+    },
+    {
+      "bidang": "Barang & jasa",
+      "kelompok": "Belanja Barang dan Jasa",
+      "nilai": 1684682707880.45
+    },
+    {
+      "bidang": "Jalan, irigasi & jaringan",
+      "kelompok": "Belanja Modal",
+      "nilai": 341727136290.0
+    },
+    {
+      "bidang": "Peralatan & mesin",
+      "kelompok": "Belanja Modal",
+      "nilai": 223217079596.55
+    },
+    {
+      "bidang": "Gedung & bangunan",
+      "kelompok": "Belanja Modal",
+      "nilai": 198202349214.0
+    },
+    {
+      "bidang": "Tanah",
+      "kelompok": "Belanja Modal",
+      "nilai": 157722851041.0
+    },
+    {
+      "bidang": "Aset tetap lainnya",
+      "kelompok": "Belanja Modal",
+      "nilai": 9708703120.0
+    },
+    {
+      "bidang": "Hibah",
+      "kelompok": "Belanja Hibah",
+      "nilai": 120954743967.0
+    },
+    {
+      "bidang": "Bantuan sosial",
+      "kelompok": "Belanja Bantuan Sosial",
+      "nilai": 44739200000.0
+    },
+    {
+      "bidang": "Tak terduga (darurat)",
+      "kelompok": "Belanja Tak Terduga",
+      "nilai": 13817875287.37
+    },
+    {
+      "bidang": "Subsidi",
+      "kelompok": "Belanja Subsidi",
+      "nilai": 971250.0
+    }
+  ],
+  "totalBelanja": {
+    "anggaran": 4623624897127.3,
+    "realisasi": 4156197412994.37,
+    "persen": 89.89
+  },
+  "pendapatan": {
+    "anggaran": 4537174477189.93,
+    "realisasi": 4345567761428.05,
+    "persen": 95.78,
+    "rincian": [
+      {
+        "jenis": "Pajak daerah",
+        "realisasi": 1909281833739.0
+      },
+      {
+        "jenis": "Retribusi daerah",
+        "realisasi": 263201628101.0
+      },
+      {
+        "jenis": "Hasil kekayaan daerah yang dipisahkan",
+        "realisasi": 22089910672.0
+      },
+      {
+        "jenis": "Lain-lain PAD yang sah",
+        "realisasi": 51090283850.05
+      },
+      {
+        "jenis": "Transfer pemerintah pusat",
+        "realisasi": 1796749369642.0
+      },
+      {
+        "jenis": "Transfer antar daerah",
+        "realisasi": 303154735424.0
+      }
+    ]
+  },
+  "anggaranVsRealisasi": [
+    {
+      "jenis": "Belanja operasi",
+      "anggaran": 3492802447512.7,
+      "realisasi": 3211801418445.45,
+      "persen": 91.95
+    },
+    {
+      "jenis": "Belanja modal",
+      "anggaran": 1097710667064.6,
+      "realisasi": 930578119261.55,
+      "persen": 84.77
+    },
+    {
+      "jenis": "Belanja tak terduga",
+      "anggaran": 33111782550.0,
+      "realisasi": 13817875287.37,
+      "persen": 41.73
+    }
+  ],
+  "silpa2025": 275820768371.05,
+  "tahun2026": {
+    "anggaranBelanja": 4387780000000,
+    "catatan": "Rp4.387,78 miliar, turun 3,29% dari tahun sebelumnya",
+    "realisasiJanSep": 1972440000000,
+    "persenRealisasi": 44.95,
+    "rincianRealisasiJanSep": [
+      {
+        "jenis": "Belanja barang dan jasa",
+        "nilai": 948780000000
+      },
+      {
+        "jenis": "Belanja pegawai",
+        "nilai": 816330000000
+      },
+      {
+        "jenis": "Belanja modal",
+        "nilai": 144400000000
+      },
+      {
+        "jenis": "Belanja lainnya",
+        "nilai": 62930000000
+      }
+    ],
+    "sumber": "Databoks Katadata, 7 September 2026",
+    "sumberUrl": "https://databoks.katadata.co.id/datapublish/2026/09/07/realisasi-belanja-daerah-pemkot-depok-per-september-2026"
+  }
+}
