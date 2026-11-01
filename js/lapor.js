@@ -55,6 +55,7 @@ document.querySelector('[name=foto]').addEventListener('change', (e) => {
 document.getElementById('ambilLokasi').addEventListener('click', () => {
   const info = document.getElementById('infoLokasi');
   if (!navigator.geolocation) { info.textContent = 'Browser tidak mendukung lokasi.'; return; }
+  if (!window.isSecureContext) { info.textContent = 'Lokasi hanya jalan di HTTPS atau localhost.'; return; }
   info.textContent = 'Mencari lokasi…';
   navigator.geolocation.getCurrentPosition(
     (pos) => {
@@ -68,7 +69,17 @@ document.getElementById('ambilLokasi').addEventListener('click', () => {
         ? `✔ Terverifikasi: kamu ${jarak} m dari proyek (batas ${batas} m).`
         : `⚠ Kamu ${jarak} m dari proyek (lebih dari ${batas} m).`;
     },
-    () => { info.textContent = 'Izin lokasi ditolak. Laporan tetap bisa dikirim tanpa tanda terverifikasi.'; }
+    (err) => {
+      const pesan = {
+        1: 'Izin lokasi ditolak. Klik ikon gembok di kiri alamat > Lokasi > Izinkan, lalu muat ulang.',
+        2: 'Lokasi tidak tersedia. Nyalakan Location di Windows atau HP, lalu coba lagi.',
+        3: 'Mencari lokasi terlalu lama. Coba lagi, atau pindah ke tempat terbuka.'
+      };
+      info.textContent = (pesan[err.code] || 'Gagal mengambil lokasi.') +
+        ' Laporan tetap bisa dikirim tanpa tanda terverifikasi.';
+      console.warn('Geolocation error', err.code, err.message);
+    },
+    { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
   );
 });
 

@@ -40,7 +40,7 @@ fetch('data/proyek.json')
         Laporkan kondisi di lapangan
       </a>`;
   })
-    .catch((err) => {
+  .catch((err) => {
     document.getElementById('struk').textContent = 'Error: ' + err.message;
-    console.error(err);;
+    console.error(err);
   });

@@ -1,4 +1,4 @@
-# wujud
+# Wujud — Anggaran harus berwujud
 
 Wujud menghubungkan data anggaran proyek pemerintah dengan bukti lapangan dari warga, lalu melacak tindak lanjutnya sampai selesai.
 
@@ -21,19 +21,25 @@ flowchart TD
   B[Beranda] --> P[Peta Proyek] --> D[Detail Proyek] --> F[Formulir Lapor] --> L[Lacak Laporan]
   B --> S[Papan Skor]
   B --> T[Tentang]
+  B --> G[Panel Petugas - demo]
+```
 
-  ## Sitemap
-```mermaid
-flowchart TD
-  B[Beranda] --> P[Peta Proyek] --> D[Detail Proyek] --> F[Formulir Lapor] --> L[Lacak Laporan]
-  B --> S[Papan Skor]
-  B --> T[Tentang]
+## Progres
+- [x] Beranda: Struk Belanja Kota (data CaLK Pemkot Depok TA 2025)
+- [x] Peta Proyek: 24 proyek, filter sektor, tahun, dan pencarian
+- [x] Detail proyek (struk proyek: pagu, HPS, kontrak, selisih)
+- [x] Formulir Lapor: foto, GPS, kode lacak
+- [x] Lacak Laporan dengan batas waktu 7 hari
+- [x] Papan Skor dinas dan Panel Petugas (demo)
+- [x] Halaman Tentang dan metodologi
+- [ ] Laporan lapangan nyata (kunjungan tim)
+- [ ] Penyempurnaan tampilan di HP
 
-  ## Catatan data
+## Catatan data
 - Realisasi APBD 2025: CaLK Pemerintah Kota Depok TA 2025 (PPID Kota Depok)
 - 21 proyek: LPSE Kota Depok (spse.inaproc.id/depok), 3 proyek jalan/drainase: berita resmi DPUPR
 - Laporan warga: hasil kunjungan lapangan tim
-Rincian lengkap ada di data/SUMBER-DATA.md.
+- Rincian lengkap ada di `data/SUMBER-DATA.md`.
 
 ## Tim
 - Atilla — UI & Beranda
