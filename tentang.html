@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tentang — Wujud</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-stone-50 text-slate-900">
+  <nav class="flex flex-wrap gap-4 p-4 bg-white shadow-sm">
+    <a href="petugas.html" class="text-amber-700">Panel Petugas (demo)</a>
+    <a href="index.html" class="font-extrabold">Wujud</a>
+    <a href="peta.html">Peta Proyek</a>
+    <a href="lacak.html">Lacak Laporan</a>
+    <a href="skor.html">Papan Skor</a>
+    <a href="tentang.html" class="underline">Tentang</a>
+  </nav>
+
+  <main class="max-w-5xl mx-auto p-4">
+    <h1 class="text-3xl font-extrabold">Tentang Wujud</h1>
+
+    <section class="mt-6 bg-white rounded-xl shadow-sm p-5">
+      <h2 class="text-xl font-bold">Masalah yang diselesaikan</h2>
+      <p class="mt-2">Anggaran daerah sering cuma berupa angka di dokumen. Warga sulit tahu uangnya jadi apa, di mana, dan siapa yang mengerjakan. Wujud mengubah angka itu jadi sesuatu yang bisa dilihat, dilaporkan, dan dinilai.</p>
+    </section>
+
+    <section class="mt-6 bg-white rounded-xl shadow-sm p-5">
+      <h2 class="text-xl font-bold">Cara kerja</h2>
+      <ol class="mt-2 list-decimal pl-5 space-y-1">
+        <li><b>Lihat</b>: buka Peta Proyek untuk melihat proyek Pemkot Depok beserta anggaran, pemenang, dan statusnya.</li>
+        <li><b>Lapor</b>: kirim laporan dengan foto dan lokasi GPS lewat formulir.</li>
+        <li><b>Lacak</b>: pantau laporanmu dengan kode lacak, seperti melacak resi paket.</li>
+        <li><b>Nilai</b>: lihat Papan Skor untuk membandingkan respons tiap dinas.</li>
+      </ol>
+    </section>
+
+    <section class="mt-6 bg-white rounded-xl shadow-sm p-5">
+      <h2 class="text-xl font-bold">Sumber data</h2>
+      <ul class="mt-2 list-disc pl-5 space-y-1">
+        <li><b>Struk Kota</b>: realisasi belanja 2025 per jenis belanja, dari CaLK Pemkot Depok TA 2025 (laporan keuangan yang sudah diaudit).</li>
+        <li><b>21 proyek</b>: dari LPSE Kota Depok (nama paket, pagu, HPS, pemenang, nilai kontrak).</li>
+        <li><b>3 proyek jalan/drainase DPUPR 2026</b>: dari berita detikNews dan JPNN Jabar. Nama penyedianya tidak disebut di berita, jadi dikosongkan.</li>
+      </ul>
+      <p class="mt-2 text-sm text-slate-500">Semua data diakses 24 Oktober 2026 dan bisa dicek ulang di sumber aslinya.</p>
+    </section>
+
+    <section class="mt-6 bg-white rounded-xl shadow-sm p-5">
+      <h2 class="text-xl font-bold">Presisi lokasi di peta</h2>
+      <p class="mt-2">Lokasi diambil dari OpenStreetMap, dengan tiga tingkat presisi: <b>titik</b> (lokasi bangunan), <b>jalan</b> (ruas jalannya), dan <b>kelurahan/kecamatan</b> (titik tengah wilayah, belum titik persis). Proyek tingkat terakhir sebaiknya dikoreksi setelah survei lapangan.</p>
+    </section>
+
+    <section class="mt-6 bg-white rounded-xl shadow-sm p-5">
+      <h2 class="text-xl font-bold">Asal laporan</h2>
+      <p class="mt-2">Laporan di Wujud berasal dari kunjungan lapangan tim kami ke beberapa proyek, lengkap dengan foto dan GPS. Ini bukan laporan warga sungguhan, dan status "Lapangan" hanya berasal dari laporan nyata tersebut.</p>
+    </section>
+
+    <section class="mt-6 bg-white rounded-xl shadow-sm p-5">
+      <h2 class="text-xl font-bold">Cara menghitung skor dinas</h2>
+      <p class="mt-2"><!-- tulis rumus dari js/skor.js dengan bahasa sederhana --></p>
+    </section>
+  </main>
+
+  <footer class="text-center text-sm text-slate-500 p-6">
+    Sumber data: CaLK Pemkot Depok TA 2025 &amp; LPSE Kota Depok. Lihat halaman Tentang.
+  </footer>
+</body>
+</html>
