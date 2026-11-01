@@ -1,0 +1,22 @@
+<h1 class="text-2xl font-extrabold mb-3">Laporkan kondisi proyek</h1>
+<form id="formLapor" class="space-y-3 max-w-md">
+  <label class="block">Kondisi di lapangan
+    <select name="kondisi" class="border rounded p-2 w-full" required>
+      <option>Sesuai</option>
+      <option>Belum dikerjakan</option>
+      <option>Terbengkalai</option>
+      <option>Rusak setelah selesai</option>
+    </select>
+  </label>
+  <label class="block">Foto bukti
+    <input name="foto" type="file" accept="image/*" capture="environment" required>
+  </label>
+  <img id="pratinjau" class="hidden max-h-48 rounded" alt="Pratinjau foto">
+  <label class="block">Catatan (opsional)
+    <textarea name="catatan" rows="3" class="border rounded p-2 w-full"></textarea>
+  </label>
+  <button type="button" id="ambilLokasi" class="border px-3 py-2 rounded">📍 Ambil lokasi saya</button>
+  <p id="infoLokasi" class="text-sm"></p>
+  <button class="bg-slate-900 text-white px-4 py-2 rounded">Kirim laporan</button>
+</form>
+<div id="hasil" class="hidden p-4 bg-green-100 rounded max-w-md"></div>
