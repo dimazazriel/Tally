@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lacak Laporan — Wujud</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-stone-50 text-slate-900">
+  <nav class="flex flex-wrap gap-4 p-4 bg-white shadow-sm">
+    <a href="petugas.html" class="text-amber-700">Panel Petugas (demo)</a>
+    <a href="index.html" class="font-extrabold">Wujud</a>
+    <a href="peta.html">Peta Proyek</a>
+    <a href="lacak.html">Lacak Laporan</a>
+    <a href="skor.html">Papan Skor</a>
+    <a href="tentang.html">Tentang</a>
+  </nav>
+
+  <main class="max-w-5xl mx-auto p-4">
+<h1 class="text-2xl font-extrabold mb-3">Lacak laporan</h1>
+<form id="formLacak" class="flex gap-2 max-w-md">
+  <input id="kode" placeholder="WJD-XXXX" class="border rounded p-2 font-mono flex-1" required>
+  <button class="bg-slate-900 text-white px-4 rounded">Lacak</button>
+</form>
+<div id="linimasa" class="mt-4 max-w-md"></div>
+  </main>
+
+  <footer class="text-center text-sm text-slate-500 p-6">
+    Sumber data: CaLK Pemkot Depok TA 2025 &amp; LPSE Kota Depok. Lihat halaman Tentang.
+  </footer>
+
+  <script src="js/util.js"></script>
+  <script src="js/lacak.js"></script>
+</body>
+</html>
