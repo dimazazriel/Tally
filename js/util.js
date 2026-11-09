@@ -3,6 +3,8 @@ const rupiah = (n) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
 
 // Ambil semua laporan dari localStorage (kosong → [])
+// Kunci "wujud_laporan" memakai nama lama proyek; sengaja tidak diganti
+// supaya laporan yang sudah tersimpan di browser tidak hilang.
 function ambilLaporan() {
   try { return JSON.parse(localStorage.getItem('wujud_laporan')) || []; }
   catch (e) { return []; }
@@ -13,9 +15,9 @@ function simpanLaporan(daftar) {
   localStorage.setItem('wujud_laporan', JSON.stringify(daftar));
 }
 
-// Buat kode lacak acak, contoh: WJD-7K2Q
+// Buat kode lacak acak, contoh: TLY-7K2Q
 function buatKodeLacak() {
-  return 'WJD-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+  return 'TLY-' + Math.random().toString(36).slice(2, 6).toUpperCase();
 }
 
 // Siapkan laci laporan kosong. Tidak ada laporan contoh:

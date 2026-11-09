@@ -1,4 +1,4 @@
-# Sumber Data Wujud — Kota Depok
+# Sumber Data Tally — Kota Depok
 
 Semua angka di folder `data/` diambil dari sumber resmi atau berita yang bisa dicek ulang. Diakses 24 Oktober 2026.
 
@@ -37,9 +37,9 @@ Seluruh 241 paket tender LPSE Kota Depok tahun anggaran 2025 dan 2026 (konstruks
 
 ## 4. Yang TIDAK boleh dikarang
 
-- **Laporan warga.** Jangan membuat laporan contoh fiktif. Mulai dari kosong, lalu tim mengunjungi 3–5 proyek di daftar ini dan mengirim laporan asli (foto + GPS) lewat formulir Wujud. Itu sekaligus jadi bahan video demo.
+- **Laporan warga.** Jangan membuat laporan contoh fiktif. Mulai dari kosong, lalu tim mengunjungi 3–5 proyek di daftar ini dan mengirim laporan asli (foto + GPS) lewat formulir Tally. Itu sekaligus jadi bahan video demo.
 - **Status "Lapangan".** Hanya boleh berasal dari laporan nyata.
-- **Penilaian penyedia.** Wujud menampilkan data, bukan tuduhan. Kalau ada pola menarik (misalnya satu penyedia memenangkan beberapa paket), tampilkan sebagai fakta beserta sumbernya, tanpa kesimpulan.
+- **Penilaian penyedia.** Tally menampilkan data, bukan tuduhan. Kalau ada pola menarik (misalnya satu penyedia memenangkan beberapa paket), tampilkan sebagai fakta beserta sumbernya, tanpa kesimpulan.
 
 ## 5. Cara cek ulang sendiri (LPSE)
 

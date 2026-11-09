@@ -1,6 +1,9 @@
-# Wujud — Anggaran harus berwujud
+# Tally — Cocok di dokumen, cocok di lapangan
 
-Wujud menghubungkan data anggaran proyek pemerintah dengan bukti lapangan dari warga, lalu melacak tindak lanjutnya sampai selesai.
+Tally mencocokkan data anggaran proyek pemerintah dengan bukti lapangan dari warga, lalu melacak tindak lanjutnya sampai selesai.
+
+> *To tally* berarti "cocok". Tally mencocokkan catatan resmi anggaran dengan bukti dari lapangan.
+> Proyek ini sebelumnya bernama **Wujud** (nama pada First Draft).
 
 **Demo:** https://dimazazriel.github.io/wujud/
 
