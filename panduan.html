@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panduan pengujian & aset · Tally</title>
+  <meta name="description" content="Panduan juri menguji Tally dalam 5 menit, PIN demo, dokumentasi database dan API terbuka.">
+  <meta name="theme-color" content="#1b1b3a">
+  <meta property="og:title" content="Panduan pengujian & aset · Tally">
+  <meta property="og:description" content="Panduan juri menguji Tally dalam 5 menit, PIN demo, dokumentasi database dan API terbuka.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/plus-jakarta-sans-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/plus-jakarta-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-halaman="panduan">
+  <a class="lewati" href="#isi">Lewati ke konten</a>
+  <header class="kepala">
+    <div class="wadah kepala__baris">
+      <a class="logo" href="index.html" aria-label="Tally, ke beranda"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M8 6v20M13.5 6v20M19 6v20M24.5 6v20"/><path d="M4 21.5 28.5 10"/></svg><span>Tally</span></a>
+      <nav class="navigasi" aria-label="Utama">
+        <a href="peta.html">Peta proyek</a>
+        <a href="skor.html">Papan skor</a>
+        <a href="tentang.html">Tentang</a>
+        <a href="panduan.html" aria-current="page">Panduan juri</a>
+      </nav>
+      <form class="lacak-cepat" action="lacak.html" role="search" aria-label="Lacak laporan">
+        <label for="lacak-cepat-kode" class="sr">Kode lacak</label>
+        <input id="lacak-cepat-kode" name="kode" placeholder="TLY-XXXX" autocomplete="off" spellcheck="false" maxlength="8">
+        <button class="tombol tombol--garis tombol--kecil" type="submit">Lacak</button>
+      </form>
+    </div>
+  </header>
+  <main id="isi">
+    <div class="wadah">
+      <div class="halaman-kepala">
+        <h1>Panduan pengujian dan aset pendukung</h1>
+        <p class="pengantar">Untuk juri Web In Action: cara menguji semua fitur Tally dalam lima menit, PIN demo, kode lacak contoh, arsitektur database, API terbuka, dan tautan ke seluruh aset.</p>
+        <p class="status-db" style="color:var(--tinta-pudar);margin-top:16px" id="status-panduan">Memeriksa database…</p>
+      </div>
+
+      <div class="dokumen">
+        <nav class="daftar-isi" aria-label="Daftar isi">
+          <ol>
+            <li><a href="#ringkas">Tally dalam 30 detik</a></li>
+            <li><a href="#skenario">Skenario uji 5 menit</a></li>
+            <li><a href="#pin">PIN dan kode contoh</a></li>
+            <li><a href="#arsitektur">Arsitektur</a></li>
+            <li><a href="#database">Database</a></li>
+            <li><a href="#api">API terbuka</a></li>
+            <li><a href="#aset">Aset pendukung</a></li>
+            <li><a href="#batasan">Batasan yang diketahui</a></li>
+          </ol>
+        </nav>
+
+        <article class="prosa">
+          <h2 id="ringkas">Tally dalam 30 detik</h2>
+          <p><b>Masalah:</b> anggaran proyek Kota Depok terbuka di dokumen, tetapi warga tidak punya cara mudah mencocokkannya dengan kondisi di lapangan, dan laporan warga sering tidak berujung.</p>
+          <p><b>Solusi:</b> Tally menampilkan 24 proyek resmi (data LPSE dan CaLK) di peta. Warga melapor dengan foto dan cek GPS, laporan untuk masalah yang sama digabung menjadi satu kasus, petugas memverifikasi dan menindaklanjuti dengan batas waktu 7 hari, dan papan skor menilai respons tiap dinas.</p>
+          <p><b>Subtema:</b> Civic Reporting &amp; Accountability, yaitu pelaporan warga yang terintegrasi dengan verifikasi dan tindak lanjut untuk mendorong pengawasan publik.</p>
+          <div class="ringkas" id="angka-langsung" style="margin-top:20px">
+            <div><b>…</b><span>proyek di database</span></div>
+            <div><b>…</b><span>laporan masuk</span></div>
+            <div><b>…</b><span>kasus</span></div>
+            <div><b>…</b><span>dukungan warga</span></div>
+          </div>
+
+          <h2 id="skenario">Skenario uji 5 menit</h2>
+          <p>Ikuti urutan ini di laptop. Semua data tersimpan di database bersama, jadi perubahan langsung terlihat dari perangkat lain.</p>
+          <ol class="langkah-uji">
+            <li><b>Beranda</b><p>Baca Struk Belanja Kota dan daftar "Proyek yang paling perlu dicek" yang dipilih otomatis dari data.</p><span class="harapan">Terlihat: struk APBD 2025, empat proyek dengan sinyal, laporan terbaru.</span></li>
+            <li><b>Peta proyek</b><p>Saring sektor "Drainase", lalu klik satu proyek di daftar kiri.</p><span class="harapan">Peta terbang ke penanda; warna penanda = status lapangan.</span></li>
+            <li><b>Struk proyek</b><p>Buka <a href="detail.html?id=PRJ-014">PRJ-014</a>. Bandingkan "Kata dokumen" (struk resmi) dengan "Kata warga", lalu baca sinyal kontrak di bawah 80% HPS.</p><span class="harapan">Stempel menunjukkan cocok, tidak cocok, atau belum dicek.</span></li>
+            <li><b>Kirim laporan uji</b><p>Tekan "Laporkan kondisi di lapangan", pilih kondisi, unggah foto apa saja. Lokasi boleh dilewati dari laptop.</p><span class="harapan">Muncul resi dengan kode TLY-XXXX dan stempel DITERIMA.</span></li>
+            <li><b>Uji laporan ganda</b><p>Buka proyek yang sama di peramban lain atau mode penyamaran, lalu tekan "Saya juga lihat ini", atau kirim laporan dengan kondisi yang sama.</p><span class="harapan">Tidak ada tiket baru: dukungan bertambah, laporan kedua digabung ke kasus pertama.</span></li>
+            <li><b>Panel petugas</b><p>Buka <a href="petugas.html">Panel petugas</a>, masuk dengan PIN demo, pilih kasus tadi, lihat foto dan jarak GPS, lalu tekan "Verifikasi bukti". Laporan iseng bisa ditolak dengan catatan.</p><span class="harapan">Status berubah dan tercatat di linimasa.</span></li>
+            <li><b>Lacak</b><p>Masukkan kode tadi di kotak Lacak di kanan atas.</p><span class="harapan">Linimasa, sisa batas waktu 7 hari, dan catatan petugas tampil.</span></li>
+            <li><b>Papan skor</b><p>Buka <a href="skor.html">Papan skor</a> dan ganti kelompok ke kecamatan atau penyedia.</p><span class="harapan">Kasus tadi ikut dihitung; sepuluh laporan untuk satu masalah tetap satu kasus.</span></li>
+          </ol>
+
+          <h2 id="pin">PIN dan kode contoh</h2>
+          <p><b>PIN demo Panel Petugas: <code id="pin-demo">404404</code></b> (sesuai nama tim kami, error 404). PIN ini sengaja dibagikan untuk pengujian; di sistem nyata halaman petugas memakai akun login. PIN admin tim untuk menghapus laporan tidak dibagikan.</p>
+          <h3 id="kode-contoh">Kode lacak terbaru</h3>
+          <p>Diambil langsung dari database. Laporan bertanda "tim" berasal dari kunjungan lapangan tim Tally.</p>
+          <div class="tabel-gulir"><table class="tabel"><thead><tr><th scope="col">Kode</th><th scope="col">Proyek</th><th scope="col">Kondisi</th><th scope="col">Status</th><th scope="col">Sumber</th></tr></thead><tbody id="kode-terbaru"><tr><td colspan="5"><div class="kerangka"></div></td></tr></tbody></table></div>
+
+          <h2 id="arsitektur">Arsitektur</h2>
+          <div class="arsitektur" aria-label="Diagram arsitektur">
+            <div><b>Website statis</b>HTML, CSS, JavaScript murni, Leaflet + OpenStreetMap. Di-hosting di Vercel.</div>
+            <span aria-hidden="true">REST + RPC</span>
+            <div><b>Supabase</b>PostgreSQL dengan Row Level Security dan 6 fungsi; Storage untuk foto.</div>
+            <span aria-hidden="true">diisi dari</span>
+            <div><b>Data resmi</b>LPSE Kota Depok, CaLK 2025, berita; disalin ke tabel proyek dan file JSON.</div>
+          </div>
+          <p><b>Mode cadangan:</b> kalau database tidak terjangkau, website otomatis membaca <code>data/proyek.json</code> dan menyimpan laporan di browser, sehingga demo tetap berjalan. Status koneksi tampil di kaki setiap halaman.</p>
+          <p><b>Peta situs:</b> Beranda → Peta proyek → Struk proyek → Lapor → Lacak; Papan skor, Tentang, Panduan, Sistem desain, dan Panel petugas bisa dibuka dari menu dan kaki halaman.</p>
+
+          <h2 id="database">Database</h2>
+          <table>
+            <thead><tr><th scope="col">Tabel</th><th scope="col">Isi</th><th scope="col">Akses publik</th></tr></thead>
+            <tbody>
+              <tr><td><code>proyek</code></td><td>24 paket resmi: pagu, HPS, kontrak, penyedia, dinas, koordinat, presisi lokasi</td><td>Baca</td></tr>
+              <tr><td><code>laporan</code></td><td>Kondisi, temuan, foto, jarak GPS, status, <code>induk_kode</code> untuk menggabungkan laporan ganda, jumlah dukungan</td><td>Baca</td></tr>
+              <tr><td><code>riwayat</code></td><td>Setiap perubahan status beserta catatan petugas dan waktunya</td><td>Baca</td></tr>
+              <tr><td><code>dukungan</code></td><td>"Saya juga lihat ini", unik per kasus per perangkat</td><td>Tidak ada</td></tr>
+              <tr><td><code>pengaturan</code></td><td>Hash PIN petugas dan admin</td><td>Tidak ada</td></tr>
+            </tbody>
+          </table>
+          <p>Semua penulisan lewat fungsi yang memeriksa isinya: <code>kirim_laporan</code>, <code>dukung</code>, <code>lacak</code>, <code>cek_pin</code>, <code>perbarui_kasus</code>, dan <code>hapus_laporan</code>. Skema lengkapnya ada di <a href="https://github.com/dimazazriel/Tally/blob/main/supabase/schema.sql" target="_blank" rel="noopener">supabase/schema.sql</a>.</p>
+
+          <h2 id="api">API terbuka</h2>
+          <p>Data proyek dan laporan bisa dipakai pihak lain (media, peneliti, aplikasi lain) lewat REST API. Kunci publik di bawah memang dirancang untuk dibagikan; hak tulisnya dibatasi aturan database.</p>
+          <pre class="kode"><code id="contoh-api">Memuat…</code></pre>
+          <div class="baris">
+            <button class="tombol tombol--garis" type="button" id="coba-api"><svg aria-hidden="true"><use href="#i-database"></use></svg>Coba panggil API</button>
+            <span class="bantuan">Menampilkan 3 proyek pertama langsung dari database.</span>
+          </div>
+          <pre class="kode" id="hasil-api" hidden></pre>
+
+          <h2 id="aset">Aset pendukung</h2>
+          <ul id="daftar-aset">
+            <li><a href="https://github.com/dimazazriel/Tally" target="_blank" rel="noopener">Repository GitHub</a>, berisi README, cara menjalankan, dan riwayat commit tim.</li>
+            <li><a href="https://github.com/dimazazriel/Tally/blob/main/data/SUMBER-DATA.md" target="_blank" rel="noopener">SUMBER-DATA.md</a>: asal setiap angka dan cara mengeceknya sendiri di LPSE.</li>
+            <li><a href="data/proyek.json">data/proyek.json</a>, <a href="data/apbd.json">data/apbd.json</a>, dan <a href="data/lpse-depok-tender-2025-2026.json">241 paket tender LPSE</a> (data terbuka).</li>
+            <li><a href="desain.html">Sistem desain</a>: palet beserta kontrasnya, tipografi, komponen, dan alasan desain.</li>
+            <li><a href="tentang.html">Latar belakang dan metode</a>, termasuk rumus stempel, kasus, dan papan skor.</li>
+          </ul>
+
+          <h2 id="batasan">Batasan yang diketahui</h2>
+          <ul>
+            <li>Panel petugas memakai PIN demo, belum akun login per petugas dan per dinas.</li>
+            <li>Belum ada pembatasan jumlah laporan per perangkat; laporan iseng ditangani dengan "Tolak" dan dihapus admin.</li>
+            <li>Lokasi GPS bisa dipalsukan dari perangkat. Cek radius adalah penyaring awal, bukan bukti mutlak; verifikasi petugas tetap diperlukan.</li>
+            <li>15 dari 24 proyek koordinatnya masih titik tengah kelurahan atau kecamatan, sehingga radius ceknya dilonggarkan menjadi 1.500 m.</li>
+            <li>Data proyek adalah salinan per 24 Oktober 2026, belum sinkron otomatis dengan LPSE.</li>
+            <li>Status tindak lanjut saat ini diubah tim sebagai simulasi petugas, belum oleh dinas sungguhan.</li>
+          </ul>
+          <p><b>Rencana pengembangan:</b> sinkronisasi otomatis dengan LPSE/SiRUP, akun petugas per dinas, meneruskan kasus terverifikasi ke SP4N-LAPOR!, notifikasi WhatsApp untuk pelapor, dan mode luring (PWA) untuk lokasi dengan sinyal lemah.</p>
+        </article>
+      </div>
+    </div>
+  </main>
+  <footer class="kaki">
+    <div class="wadah">
+      <div class="kaki__grid">
+        <div>
+          <a class="logo" href="index.html"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M8 6v20M13.5 6v20M19 6v20M24.5 6v20"/><path d="M4 21.5 28.5 10"/></svg><span>Tally</span></a>
+          <p>Mencocokkan anggaran proyek Kota Depok dengan bukti foto dan GPS dari warga, lalu melacak tindak lanjutnya.</p>
+          <span class="status-db">Memeriksa database…</span>
+        </div>
+        <nav aria-labelledby="kaki-jelajahi">
+          <h2 id="kaki-jelajahi">Jelajahi</h2>
+          <ul>
+            <li><a href="index.html">Beranda</a></li>
+            <li><a href="peta.html">Peta proyek</a></li>
+            <li><a href="lapor.html">Laporkan proyek</a></li>
+            <li><a href="lacak.html">Lacak laporan</a></li>
+            <li><a href="skor.html">Papan skor</a></li>
+          </ul>
+        </nav>
+        <nav aria-labelledby="kaki-tentang">
+          <h2 id="kaki-tentang">Tentang Tally</h2>
+          <ul>
+            <li><a href="tentang.html">Latar belakang &amp; metode</a></li>
+            <li><a href="panduan.html">Panduan juri &amp; API</a></li>
+            <li><a href="desain.html">Sistem desain</a></li>
+            <li><a href="petugas.html">Panel petugas (demo)</a></li>
+          </ul>
+        </nav>
+        <div>
+          <h2>Sumber data</h2>
+          <ul>
+            <li><a href="https://ppid.depok.go.id/wp-content/uploads/2026/08/2.-CALK-2025.pdf" target="_blank" rel="noopener">CaLK Pemkot Depok TA 2025</a></li>
+            <li><a href="https://spse.inaproc.id/depok" target="_blank" rel="noopener">LPSE Kota Depok</a></li>
+            <li><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="kaki__bawah">
+        <span>Karya tim error 404 untuk Web In Action, Multimedia In Action 2026.</span>
+        <span>Data proyek diakses 24 Oktober 2026. Tally menampilkan data, bukan tuduhan.</span>
+      </div>
+    </div>
+  </footer>
+  <script src="js/config.js"></script>
+  <script src="js/util.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/panduan.js"></script>
+</body>
+</html>

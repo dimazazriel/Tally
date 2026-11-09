@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    { "source": "/panduan", "destination": "/panduan.html" },
+    { "source": "/desain", "destination": "/desain.html" }
+  ],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }]
+    }
+  ]
+}

@@ -2,74 +2,184 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tentang — Tally</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tentang & metode · Tally</title>
+  <meta name="description" content="Latar belakang, sumber data, dan metode penilaian Tally.">
+  <meta name="theme-color" content="#1b1b3a">
+  <meta property="og:title" content="Tentang & metode · Tally">
+  <meta property="og:description" content="Latar belakang, sumber data, dan metode penilaian Tally.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/plus-jakarta-sans-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/plus-jakarta-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="bg-stone-50 text-slate-900">
-  <nav class="flex flex-wrap gap-4 p-4 bg-white shadow-sm">
-    <a href="petugas.html" class="text-amber-700">Panel Petugas (demo)</a>
-    <a href="index.html" class="font-extrabold">Tally</a>
-    <a href="peta.html">Peta Proyek</a>
-    <a href="lacak.html">Lacak Laporan</a>
-    <a href="skor.html">Papan Skor</a>
-    <a href="tentang.html" class="underline">Tentang</a>
-  </nav>
- 
-  <main class="max-w-5xl mx-auto p-4">
-    <h1 class="text-3xl font-extrabold">Tentang Tally</h1>
- 
-    <section class="mt-6 bg-white rounded-xl shadow-sm p-5">
-      <h2 class="text-xl font-bold">Arti nama Tally</h2>
-      <p class="mt-2">Dalam bahasa Inggris, <i>to tally</i> berarti <b>cocok</b> atau sesuai. Kata ini berasal dari <i>tally stick</i>, tongkat kayu yang selama berabad-abad dipakai kas kerajaan Inggris sebagai bukti pembayaran. Setiap transaksi ditorehkan di tongkat, lalu tongkat dibelah dua: satu belahan dipegang pembayar, satu lagi disimpan kas negara. Catatan dianggap sah kalau kedua belahan cocok.</p>
-      <p class="mt-2">Tally bekerja dengan cara yang sama: catatan resmi pemerintah (LPSE dan laporan keuangan) dicocokkan dengan bukti warga di lapangan. Proyek ini sebelumnya bernama <i>Wujud</i>.</p>
-    </section>
- 
-    <section class="mt-6 bg-white rounded-xl shadow-sm p-5">
-      <h2 class="text-xl font-bold">Masalah yang diselesaikan</h2>
-      <p class="mt-2">Anggaran daerah sering cuma berupa angka di dokumen. Warga sulit tahu uangnya jadi apa, di mana, dan siapa yang mengerjakan. Tally mencocokkan angka itu dengan kenyataan di lapangan, sehingga bisa dilihat, dilaporkan, dan dinilai.</p>
-    </section>
- 
-    <section class="mt-6 bg-white rounded-xl shadow-sm p-5">
-      <h2 class="text-xl font-bold">Cara kerja</h2>
-      <ol class="mt-2 list-decimal pl-5 space-y-1">
-        <li><b>Lihat</b>: buka Peta Proyek untuk melihat proyek Pemkot Depok beserta anggaran, pemenang, dan statusnya.</li>
-        <li><b>Lapor</b>: kirim laporan dengan foto dan lokasi GPS lewat formulir.</li>
-        <li><b>Lacak</b>: pantau laporanmu dengan kode lacak, seperti melacak resi paket.</li>
-        <li><b>Nilai</b>: lihat Papan Skor untuk membandingkan respons tiap dinas.</li>
-      </ol>
-    </section>
- 
-    <section class="mt-6 bg-white rounded-xl shadow-sm p-5">
-      <h2 class="text-xl font-bold">Sumber data</h2>
-      <ul class="mt-2 list-disc pl-5 space-y-1">
-        <li><b>Struk Kota</b>: realisasi belanja 2025 per jenis belanja, dari CaLK Pemkot Depok TA 2025 (laporan keuangan yang sudah diaudit).</li>
-        <li><b>21 proyek</b>: dari LPSE Kota Depok (nama paket, pagu, HPS, pemenang, nilai kontrak).</li>
-        <li><b>3 proyek jalan/drainase DPUPR 2026</b>: dari berita detikNews dan JPNN Jabar. Nama penyedianya tidak disebut di berita, jadi dikosongkan.</li>
-      </ul>
-      <p class="mt-2 text-sm text-slate-500">Semua data diakses 24 Oktober 2026 dan bisa dicek ulang di sumber aslinya.</p>
-    </section>
- 
-    <section class="mt-6 bg-white rounded-xl shadow-sm p-5">
-      <h2 class="text-xl font-bold">Presisi lokasi di peta</h2>
-      <p class="mt-2">Lokasi diambil dari OpenStreetMap, dengan tiga tingkat presisi: <b>titik</b> (lokasi bangunan), <b>jalan</b> (ruas jalannya), dan <b>kelurahan/kecamatan</b> (titik tengah wilayah, belum titik persis). Proyek tingkat terakhir sebaiknya dikoreksi setelah survei lapangan.</p>
-    </section>
- 
-    <section class="mt-6 bg-white rounded-xl shadow-sm p-5">
-      <h2 class="text-xl font-bold">Asal laporan</h2>
-      <p class="mt-2">Laporan di Tally berasal dari kunjungan lapangan tim kami ke beberapa proyek, lengkap dengan foto dan GPS. Ini bukan laporan warga sungguhan, dan status "Lapangan" hanya berasal dari laporan nyata tersebut. Perubahan status di Panel Petugas dilakukan tim sebagai simulasi petugas; skor dinas belum mencerminkan tanggapan resmi dinas.</p>
-    </section>
- 
-    <section class="mt-6 bg-white rounded-xl shadow-sm p-5">
-      <h2 class="text-xl font-bold">Cara menghitung skor dinas</h2>
-      <p class="mt-2">Skor tiap dinas adalah <b>persentase laporan yang sudah selesai ditangani</b>: jumlah laporan berstatus "Selesai" dibagi jumlah seluruh laporan untuk proyek dinas itu, dikali 100. Status laporan bergerak dari Diterima, Diverifikasi, Diteruskan ke dinas, Ditindaklanjuti, sampai Selesai. Tiap laporan diberi batas waktu 7 hari; lewat dari itu, halaman Lacak menandainya merah. Dinas yang belum punya laporan tidak ditampilkan di Papan Skor.</p>
-    </section>
+<body data-halaman="tentang">
+  <a class="lewati" href="#isi">Lewati ke konten</a>
+  <header class="kepala">
+    <div class="wadah kepala__baris">
+      <a class="logo" href="index.html" aria-label="Tally, ke beranda"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M8 6v20M13.5 6v20M19 6v20M24.5 6v20"/><path d="M4 21.5 28.5 10"/></svg><span>Tally</span></a>
+      <nav class="navigasi" aria-label="Utama">
+        <a href="peta.html">Peta proyek</a>
+        <a href="skor.html">Papan skor</a>
+        <a href="tentang.html" aria-current="page">Tentang</a>
+        <a href="panduan.html">Panduan juri</a>
+      </nav>
+      <form class="lacak-cepat" action="lacak.html" role="search" aria-label="Lacak laporan">
+        <label for="lacak-cepat-kode" class="sr">Kode lacak</label>
+        <input id="lacak-cepat-kode" name="kode" placeholder="TLY-XXXX" autocomplete="off" spellcheck="false" maxlength="8">
+        <button class="tombol tombol--garis tombol--kecil" type="submit">Lacak</button>
+      </form>
+    </div>
+  </header>
+  <main id="isi">
+    <div class="wadah">
+      <div class="halaman-kepala">
+        <h1>Anggaran sudah terbuka. Yang belum: memastikan uangnya berwujud.</h1>
+        <p class="pengantar">Tally adalah platform pelaporan warga yang menempelkan setiap laporan ke satu proyek resmi, lengkap dengan pagu, kontrak, penyedia, dan dinas penanggung jawabnya.</p>
+      </div>
+
+      <div class="dokumen">
+        <nav class="daftar-isi" aria-label="Daftar isi">
+          <ol>
+            <li><a href="#latar">Latar belakang</a></li>
+            <li><a href="#tujuan">Tujuan dan manfaat</a></li>
+            <li><a href="#nama">Arti nama Tally</a></li>
+            <li><a href="#sumber">Sumber data</a></li>
+            <li><a href="#metode">Metode dan rumus</a></li>
+            <li><a href="#etika">Privasi dan etika</a></li>
+            <li><a href="#tim">Tim</a></li>
+          </ol>
+        </nav>
+
+        <article class="prosa">
+          <h2 id="latar">Latar belakang</h2>
+          <p>Siklus pengawasan anggaran daerah putus di tiga titik. Tally dibuat untuk menyambungkannya.</p>
+          <h3>1. Data terbuka, tapi tidak terbaca warga</h3>
+          <p>Pemkot Depok merealisasikan belanja <strong>Rp4,16 triliun</strong> pada 2025, dengan belanja modal Rp930,6 miliar (84,77% dari anggarannya). Detail proyeknya memang publik di LPSE, tetapi tersebar per paket tender dan memakai istilah teknis seperti pagu dan HPS. Warga yang ingin tahu "proyek di dekat rumahku jadi apa?" tidak punya tempat untuk bertanya.</p>
+          <p id="statistik-lpse" class="pudar">Menghitung statistik tender…</p>
+          <h3>2. Pengadaan adalah titik paling rawan</h3>
+          <p>Survei Penilaian Integritas KPK 2024 menempatkan pengadaan barang dan jasa sebagai salah satu sektor paling rentan: 56% responden menilai kualitas barang tidak sesuai harga dan 49% menyebut pemenang vendor sudah diatur. Dari 1.782 perkara yang ditangani KPK sepanjang 2004–2025, 446 (sekitar 25%) berkaitan dengan pengadaan, dan KPK menegaskan pengawasannya membutuhkan partisipasi aktif masyarakat.</p>
+          <h3>3. Pengawas terbatas, laporan warga tidak berujung</h3>
+          <p>Ombudsman RI menerima 23.596 laporan sepanjang 2025; pemerintah daerah menjadi instansi yang paling banyak dilaporkan (4.766 laporan). Kanal aduan umum tidak menampilkan konteks anggaran objek yang diadukan, sehingga laporan sulit dibandingkan dengan klaim resmi. Filipina menunjukkan alternatifnya: situs Sumbong sa Pangulo memuat 9.855 proyek pengendali banjir lengkap dengan kontraktor dan nilainya, menerima lebih dari 12.000 laporan pada bulan pertama, dan presidennya menyebut audit proyek tidak akan berjalan tanpa keterlibatan warga.</p>
+          <p class="sumber">Sumber: <a href="https://ppid.depok.go.id/wp-content/uploads/2026/08/2.-CALK-2025.pdf" target="_blank" rel="noopener">CaLK Pemkot Depok TA 2025</a>; <a href="https://kpk.go.id/id/ruang-informasi/berita/pengadaan-barang-dan-jasa-sektor-paling-rentan-korupsi-di-temuan-spi-2024" target="_blank" rel="noopener">KPK, temuan SPI 2024</a>; <a href="https://nasional.kontan.co.id/news/kpk-25-kasus-korupsi-terkait-dengan-pengadaan-barang-dan-jasa" target="_blank" rel="noopener">Kontan, 21 April 2026</a>; <a href="https://ombudsman.go.id/news/r/ombudsman-ri-terima-23596-aduan-sepanjang-2025-tegaskan-warisan-pengawasan-berdampak-di-akhir-masa-jabatan-2021-2026" target="_blank" rel="noopener">Ombudsman RI, 20 Februari 2026</a>; <a href="https://vietnamnews.vn/world/1724752/philippines-newly-launched-website-for-reporting-complaints-on-flood-control-projects-gets-over-12-000-complaints.html" target="_blank" rel="noopener">Viet Nam News/Inquirer, 8 September 2025</a>; <a href="https://www.gmanetwork.com/news/topstories/nation/965948/marcos-calls-on-filipinos-keep-reporting-anomalous-flood-control-projects/story" target="_blank" rel="noopener">GMA News</a>.</p>
+
+          <h2 id="tujuan">Tujuan dan manfaat</h2>
+          <table>
+            <thead><tr><th scope="col">Untuk</th><th scope="col">Manfaat</th></tr></thead>
+            <tbody>
+              <tr><td><b>Warga</b></td><td>Tahu uang daerah dipakai untuk apa di dekat rumahnya, bisa melapor dengan bukti dalam dua menit, dan bisa memantau tindak lanjutnya tanpa harus memviralkan masalah.</td></tr>
+              <tr><td><b>Pemkot dan dinas</b></td><td>Menerima laporan yang sudah terikat ke paket kontrak, sudah dicek lokasinya, dan sudah digabung bila sama, sehingga bisa langsung ditindaklanjuti dan diprioritaskan.</td></tr>
+              <tr><td><b>Pengawas, media, peneliti</b></td><td>Mendapat data terbuka lewat API: proyek, laporan, dan waktu respons, untuk memilih proyek yang perlu diaudit lebih dulu.</td></tr>
+            </tbody>
+          </table>
+          <p>Pembeda dari kanal aduan umum seperti SP4N-LAPOR!: setiap laporan di Tally menempel pada satu proyek dengan nilai kontrak, penyedia, dan dinasnya, lalu dibandingkan langsung dengan status resminya. Tally tidak menggantikan kanal resmi; ke depan laporan yang terverifikasi bisa diteruskan ke sana.</p>
+
+          <h2 id="nama">Arti nama Tally</h2>
+          <p>Dalam bahasa Inggris, <i>to tally</i> berarti cocok. Kata ini berasal dari <i>tally stick</i>, tongkat kayu yang berabad-abad dipakai kas kerajaan Inggris sebagai bukti pembayaran. Transaksi ditorehkan di tongkat, lalu tongkat dibelah dua: satu belahan dipegang pembayar, satu lagi disimpan kas negara. Catatan dianggap sah kalau kedua belahan cocok.</p>
+          <p>Tally bekerja dengan cara yang sama. Di halaman setiap proyek, struk resmi ("kata dokumen") dan laporan warga ("kata warga") ditaruh berdampingan seperti dua belahan tongkat, lalu diberi stempel: <b>cocok</b>, <b>tidak cocok</b>, atau <b>belum dicek</b>. Logo Tally adalah turus, tanda hitung lima garis yang dipakai di seluruh dunia. Proyek ini sebelumnya bernama Wujud.</p>
+
+          <h2 id="sumber">Sumber data</h2>
+          <table>
+            <thead><tr><th scope="col">Data</th><th scope="col">Sumber</th><th scope="col">Jenis</th></tr></thead>
+            <tbody>
+              <tr><td>Struk Kota: realisasi belanja 2025 per jenis</td><td><a href="https://ppid.depok.go.id/wp-content/uploads/2026/08/2.-CALK-2025.pdf" target="_blank" rel="noopener">CaLK Pemkot Depok TA 2025</a> (laporan keuangan yang sudah diaudit). Jumlah 11 baris = total realisasi, cocok sampai rupiah.</td><td>Resmi</td></tr>
+              <tr><td>Realisasi belanja Januari–September 2026</td><td><a href="https://databoks.katadata.co.id/datapublish/2026/09/07/realisasi-belanja-daerah-pemkot-depok-per-september-2026" target="_blank" rel="noopener">Databoks Katadata</a>, 7 September 2026</td><td>Media</td></tr>
+              <tr><td>21 proyek: pagu, HPS, pemenang, kontrak</td><td><a href="https://spse.inaproc.id/depok" target="_blank" rel="noopener">LPSE Kota Depok</a>, tautan per paket ada di struk proyek</td><td>Resmi</td></tr>
+              <tr><td>3 proyek jalan dan drainase DPUPR 2026</td><td>Berita detikNews dan JPNN Jabar; penyedia tidak disebut, jadi dikosongkan</td><td>Media</td></tr>
+              <tr><td>241 paket tender 2025–2026 (data mentah)</td><td>Daftar tender LPSE Kota Depok</td><td>Resmi</td></tr>
+              <tr><td>Koordinat proyek</td><td>OpenStreetMap (Nominatim) dengan tingkat presisi titik, jalan, kelurahan, atau kecamatan</td><td>Terbuka</td></tr>
+              <tr><td>Laporan, foto, dukungan</td><td>Warga dan kunjungan lapangan tim, tersimpan di database Tally</td><td>Warga</td></tr>
+            </tbody>
+          </table>
+          <p class="pudar">Semua data resmi diakses 24 Oktober 2026. Tidak ada laporan contoh yang dikarang: laporan dari kunjungan lapangan tim ditandai "kunjungan tim", sedangkan laporan lain berasal dari warga dan pengujian.</p>
+
+          <h2 id="metode">Metode dan rumus</h2>
+          <h3>Stempel status lapangan</h3>
+          <ul>
+            <li><b>Belum dicek</b>: belum ada laporan yang diterima untuk proyek itu.</li>
+            <li><b>Tidak cocok</b>: ada kasus terbuka dengan kondisi belum dikerjakan, terbengkalai, atau rusak setelah selesai.</li>
+            <li><b>Cocok</b>: semua laporan menyatakan sesuai atau sedang dikerjakan, atau masalah sebelumnya sudah diselesaikan.</li>
+          </ul>
+          <h3>Kasus dan laporan ganda</h3>
+          <p>Laporan pertama untuk satu proyek dengan kondisi tertentu membuka <b>kasus</b>. Laporan berikutnya dengan kondisi yang sama digabung ke kasus itu, dan tombol <b>Saya juga lihat ini</b> menambah dukungan tanpa membuat tiket baru (satu kali per perangkat). Status yang diubah petugas berlaku untuk seluruh kasus, jadi semua pelapornya melihat kemajuan yang sama. Antrean petugas diurutkan dari kasus dengan dukungan terbanyak.</p>
+          <h3>Cek lokasi (GPS)</h3>
+          <p>Jarak pelapor ke titik proyek dihitung dengan rumus haversine di database. Batasnya 300 m untuk proyek yang titiknya presisi (bangunan atau ruas jalan) dan 1.500 m untuk proyek yang titiknya masih perkiraan (titik tengah kelurahan atau kecamatan). Koordinat pelapor tidak disimpan, hanya jarak dan hasil ceknya.</p>
+          <h3>Sinyal "perlu dicek"</h3>
+          <ul>
+            <li><b>Kontrak di bawah 80% HPS.</b> Aturan pengadaan memberi perhatian khusus pada penawaran di bawah 80% dari Harga Perkiraan Sendiri dan meminta evaluasi kewajaran harganya, karena berisiko pada mutu atau keterlambatan. Empat paket drainase 2025 di data ini dikontrak 67,5–70,4% dari HPS. (<a href="https://inspektorat.medan.go.id/storage/berita/SE%20LKPP%204%202022%20Ped%20Pelaksanaan%20Tertib%20Evaluasi%20Kewajaran%20Harga%20pada%20Tender.pdf" target="_blank" rel="noopener">SE LKPP 4/2022</a>; <a href="https://simantu.pu.go.id/personal/img-post/195812091986031002/post/20210222201533__F__PENAWARAN_PENYEDIA_DI_BAWAH_80_HPS.pdf" target="_blank" rel="noopener">Ditjen Bina Konstruksi PUPR</a>)</li>
+            <li><b>Titik lokasi perkiraan.</b> 15 dari 24 proyek baru bisa dipetakan sampai titik tengah kelurahan atau kecamatan.</li>
+            <li><b>Penyedia dengan lebih dari satu paket</b> di daftar ini, ditampilkan sebagai fakta tanpa kesimpulan.</li>
+          </ul>
+          <h3>Papan skor</h3>
+          <p>% selesai = kasus berstatus Selesai ÷ semua kasus masalah (yang ditolak tidak dihitung). Waktu respons = rata-rata hari dari laporan masuk sampai Ditindaklanjuti atau Selesai. Batas tanggapan 7 hari; lewat dari itu kasus ditandai merah. Status di Panel Petugas saat ini diubah oleh tim sebagai simulasi petugas.</p>
+
+          <h2 id="etika">Privasi dan etika</h2>
+          <ul>
+            <li>Tidak ada nama, NIK, nomor HP, atau akun pelapor. Kode lacak adalah satu-satunya penanda.</li>
+            <li>Lokasi pelapor dipakai sekali untuk menghitung jarak lalu dibuang; yang tersimpan hanya jaraknya.</li>
+            <li>Pelapor diminta menghindari wajah dan pelat nomor di foto.</li>
+            <li>Tally menampilkan data dan sinyal, bukan tuduhan. Kata yang dipakai adalah "tidak cocok" dan "perlu dicek", bukan "korupsi".</li>
+            <li>Database dilindungi Row Level Security: publik hanya bisa membaca, semua penulisan lewat fungsi yang memeriksa isinya, dan aksi petugas memerlukan PIN.</li>
+          </ul>
+
+          <h2 id="tim">Tim error 404</h2>
+          <ul>
+            <li><b>Atilla Majid Hartono</b> — UI dan beranda</li>
+            <li><b>Muhammad Naufal Hefzie</b> — peta dan logika</li>
+            <li><b>Dimaz Azriel Prayayewa</b> — data dan cerita</li>
+          </ul>
+          <p>Mahasiswa D3 Sistem Informasi, UPN Veteran Jakarta. Dibuat untuk Web In Action, Multimedia In Action 2026, subtema Civic Reporting &amp; Accountability.</p>
+        </article>
+      </div>
+    </div>
   </main>
- 
-  <footer class="text-center text-sm text-slate-500 p-6">
-    Sumber data: CaLK Pemkot Depok TA 2025 &amp; LPSE Kota Depok. Lihat halaman Tentang.
+  <footer class="kaki">
+    <div class="wadah">
+      <div class="kaki__grid">
+        <div>
+          <a class="logo" href="index.html"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M8 6v20M13.5 6v20M19 6v20M24.5 6v20"/><path d="M4 21.5 28.5 10"/></svg><span>Tally</span></a>
+          <p>Mencocokkan anggaran proyek Kota Depok dengan bukti foto dan GPS dari warga, lalu melacak tindak lanjutnya.</p>
+          <span class="status-db">Memeriksa database…</span>
+        </div>
+        <nav aria-labelledby="kaki-jelajahi">
+          <h2 id="kaki-jelajahi">Jelajahi</h2>
+          <ul>
+            <li><a href="index.html">Beranda</a></li>
+            <li><a href="peta.html">Peta proyek</a></li>
+            <li><a href="lapor.html">Laporkan proyek</a></li>
+            <li><a href="lacak.html">Lacak laporan</a></li>
+            <li><a href="skor.html">Papan skor</a></li>
+          </ul>
+        </nav>
+        <nav aria-labelledby="kaki-tentang">
+          <h2 id="kaki-tentang">Tentang Tally</h2>
+          <ul>
+            <li><a href="tentang.html">Latar belakang &amp; metode</a></li>
+            <li><a href="panduan.html">Panduan juri &amp; API</a></li>
+            <li><a href="desain.html">Sistem desain</a></li>
+            <li><a href="petugas.html">Panel petugas (demo)</a></li>
+          </ul>
+        </nav>
+        <div>
+          <h2>Sumber data</h2>
+          <ul>
+            <li><a href="https://ppid.depok.go.id/wp-content/uploads/2026/08/2.-CALK-2025.pdf" target="_blank" rel="noopener">CaLK Pemkot Depok TA 2025</a></li>
+            <li><a href="https://spse.inaproc.id/depok" target="_blank" rel="noopener">LPSE Kota Depok</a></li>
+            <li><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="kaki__bawah">
+        <span>Karya tim error 404 untuk Web In Action, Multimedia In Action 2026.</span>
+        <span>Data proyek diakses 24 Oktober 2026. Tally menampilkan data, bukan tuduhan.</span>
+      </div>
+    </div>
   </footer>
+  <script src="js/config.js"></script>
+  <script src="js/util.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/tentang.js"></script>
 </body>
 </html>

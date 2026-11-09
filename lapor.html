@@ -2,52 +2,166 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lapor — Tally</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Laporkan kondisi proyek · Tally</title>
+  <meta name="description" content="Kirim foto dan lokasi kondisi proyek Pemkot Depok. Tanpa nama, tanpa NIK.">
+  <meta name="theme-color" content="#1b1b3a">
+  <meta property="og:title" content="Laporkan kondisi proyek · Tally">
+  <meta property="og:description" content="Kirim foto dan lokasi kondisi proyek Pemkot Depok. Tanpa nama, tanpa NIK.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/plus-jakarta-sans-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/plus-jakarta-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css">
+  <script src="assets/vendor/leaflet/leaflet.js"></script>
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="bg-stone-50 text-slate-900">
-  <nav class="flex flex-wrap gap-4 p-4 bg-white shadow-sm">
-    <a href="petugas.html" class="text-amber-700">Panel Petugas (demo)</a>
-    <a href="index.html" class="font-extrabold">Tally</a>
-    <a href="peta.html">Peta Proyek</a>
-    <a href="lacak.html">Lacak Laporan</a>
-    <a href="skor.html">Papan Skor</a>
-    <a href="tentang.html">Tentang</a>
-  </nav>
+<body data-halaman="peta">
+  <a class="lewati" href="#isi">Lewati ke konten</a>
+  <header class="kepala">
+    <div class="wadah kepala__baris">
+      <a class="logo" href="index.html" aria-label="Tally, ke beranda"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M8 6v20M13.5 6v20M19 6v20M24.5 6v20"/><path d="M4 21.5 28.5 10"/></svg><span>Tally</span></a>
+      <nav class="navigasi" aria-label="Utama">
+        <a href="peta.html" aria-current="page">Peta proyek</a>
+        <a href="skor.html">Papan skor</a>
+        <a href="tentang.html">Tentang</a>
+        <a href="panduan.html">Panduan juri</a>
+      </nav>
+      <form class="lacak-cepat" action="lacak.html" role="search" aria-label="Lacak laporan">
+        <label for="lacak-cepat-kode" class="sr">Kode lacak</label>
+        <input id="lacak-cepat-kode" name="kode" placeholder="TLY-XXXX" autocomplete="off" spellcheck="false" maxlength="8">
+        <button class="tombol tombol--garis tombol--kecil" type="submit">Lacak</button>
+      </form>
+    </div>
+  </header>
+  <main id="isi">
+    <div class="wadah">
+      <div class="halaman-kepala">
+        <nav class="remah" aria-label="Remah roti"><a href="peta.html">Peta proyek</a><span aria-hidden="true">/</span><span id="remah-proyek">Laporkan kondisi</span></nav>
+        <h1>Laporkan kondisi proyek</h1>
+        <p class="pengantar">Cukup foto dan pilihan kondisi. Tanpa nama, tanpa NIK. Lokasimu hanya dipakai untuk menghitung jarak ke proyek, lalu dibuang.</p>
+      </div>
 
-  <main class="max-w-5xl mx-auto p-4">
-<h1 class="text-2xl font-extrabold mb-3">Laporkan kondisi proyek</h1>
-<form id="formLapor" class="space-y-3 max-w-md">
-  <label class="block">Kondisi di lapangan
-    <select name="kondisi" class="border rounded p-2 w-full" required>
-      <option>Sesuai</option>
-      <option>Belum dikerjakan</option>
-      <option>Terbengkalai</option>
-      <option>Rusak setelah selesai</option>
-    </select>
-  </label>
-  <label class="block">Foto bukti
-    <input name="foto" type="file" accept="image/*" capture="environment" required>
-  </label>
-  <img id="pratinjau" class="hidden max-h-48 rounded" alt="Pratinjau foto">
-  <label class="block">Catatan (opsional)
-    <textarea name="catatan" rows="3" class="border rounded p-2 w-full"></textarea>
-  </label>
-  <button type="button" id="ambilLokasi" class="border px-3 py-2 rounded">📍 Ambil lokasi saya</button>
-  <p id="infoLokasi" class="text-sm"></p>
-  <button class="bg-slate-900 text-white px-4 py-2 rounded">Kirim laporan</button>
-</form>
-<div id="hasil" class="hidden p-4 bg-green-100 rounded max-w-md"></div>
+      <div id="banner-tim" class="sinyal sinyal--info" hidden style="margin-bottom:24px">
+        <svg aria-hidden="true"><use href="#i-perisai"></use></svg>
+        <span><b>Mode kunjungan tim aktif di perangkat ini.</b> Laporan dari sini ditandai sebagai kunjungan lapangan tim Tally.</span>
+      </div>
+
+      <div class="dua-kolom" id="area-lapor">
+        <form id="form-lapor" novalidate>
+          <fieldset class="langkah" id="langkah-proyek" hidden>
+            <legend><b>0</b>Proyek mana yang kamu cek?</legend>
+            <label class="isian"><span>Pilih proyek</span>
+              <select class="kotak" id="pilih-proyek"><option value="">Pilih dari 24 proyek…</option></select>
+            </label>
+          </fieldset>
+
+          <fieldset class="langkah">
+            <legend><b>1</b>Bagaimana kondisinya?</legend>
+            <div class="pilihan pilihan--dua" id="pilihan-kondisi"></div>
+            <p class="galat" id="galat-kondisi" hidden></p>
+          </fieldset>
+
+          <fieldset class="langkah">
+            <legend><b>2</b>Apa yang kamu lihat? <small>opsional</small></legend>
+            <div class="centang" id="pilihan-temuan"></div>
+          </fieldset>
+
+          <fieldset class="langkah">
+            <legend><b>3</b>Foto bukti</legend>
+            <label class="unggah" id="zona-foto">
+              <svg aria-hidden="true"><use href="#i-kamera"></use></svg>
+              <b>Ambil foto atau pilih dari galeri</b>
+              <span class="bantuan">JPG, PNG, atau WEBP. Foto dikecilkan otomatis sebelum dikirim.</span>
+              <input type="file" id="foto" accept="image/*" capture="environment" aria-describedby="galat-foto">
+            </label>
+            <div class="pratinjau" id="pratinjau" hidden>
+              <img id="pratinjau-img" alt="Pratinjau foto bukti">
+              <button type="button" class="tombol tombol--garis tombol--kecil" id="ganti-foto" style="background:#fff">Ganti foto</button>
+            </div>
+            <p class="bantuan">Foto dari tempat umum. Hindari wajah orang dan pelat nomor kendaraan.</p>
+            <p class="galat" id="galat-foto" hidden></p>
+          </fieldset>
+
+          <fieldset class="langkah">
+            <legend><b>4</b>Cek lokasi <small>disarankan</small></legend>
+            <div class="baris">
+              <button type="button" class="tombol tombol--garis" id="ambil-lokasi"><svg aria-hidden="true"><use href="#i-lokasi"></use></svg>Ambil lokasi saya</button>
+              <span id="info-lokasi" class="bantuan" aria-live="polite">Laporan tanpa lokasi tetap diterima, tetapi tidak mendapat tanda "lolos cek GPS".</span>
+            </div>
+            <div class="peta-mini" id="peta-lapor" style="height:240px" role="region" aria-label="Peta jarak kamu ke proyek"></div>
+          </fieldset>
+
+          <fieldset class="langkah">
+            <legend><b>5</b>Catatan <small>opsional</small></legend>
+            <label class="isian"><span class="sr">Catatan</span>
+              <textarea class="kotak" id="catatan" maxlength="600" placeholder="Contoh: material menumpuk sejak dua minggu, tidak ada pekerja."></textarea>
+              <small><span id="hitung-catatan">0</span>/600 karakter</small>
+            </label>
+          </fieldset>
+
+          <div style="margin-top:32px" class="tumpuk">
+            <p class="galat" id="galat-kirim" hidden></p>
+            <button class="tombol tombol--besar tombol--lebar" type="submit" id="tombol-kirim">Kirim laporan</button>
+            <p class="bantuan">Dengan mengirim, kamu setuju foto dan isian ini tampil publik di Tally. Laporan diperiksa petugas sebelum diteruskan ke dinas.</p>
+          </div>
+        </form>
+
+        <aside class="tumpuk" style="position:sticky;top:92px" aria-label="Proyek yang dilaporkan">
+          <div class="panel" id="kartu-proyek"><div class="kerangka" style="height:120px"></div></div>
+          <div class="panel" id="laporan-serupa" hidden></div>
+        </aside>
+      </div>
+
+      <section id="hasil" hidden aria-live="polite"></section>
+    </div>
   </main>
-
-  <footer class="text-center text-sm text-slate-500 p-6">
-    Sumber data: CaLK Pemkot Depok TA 2025 &amp; LPSE Kota Depok. Lihat halaman Tentang.
+  <footer class="kaki">
+    <div class="wadah">
+      <div class="kaki__grid">
+        <div>
+          <a class="logo" href="index.html"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M8 6v20M13.5 6v20M19 6v20M24.5 6v20"/><path d="M4 21.5 28.5 10"/></svg><span>Tally</span></a>
+          <p>Mencocokkan anggaran proyek Kota Depok dengan bukti foto dan GPS dari warga, lalu melacak tindak lanjutnya.</p>
+          <span class="status-db">Memeriksa database…</span>
+        </div>
+        <nav aria-labelledby="kaki-jelajahi">
+          <h2 id="kaki-jelajahi">Jelajahi</h2>
+          <ul>
+            <li><a href="index.html">Beranda</a></li>
+            <li><a href="peta.html">Peta proyek</a></li>
+            <li><a href="lapor.html">Laporkan proyek</a></li>
+            <li><a href="lacak.html">Lacak laporan</a></li>
+            <li><a href="skor.html">Papan skor</a></li>
+          </ul>
+        </nav>
+        <nav aria-labelledby="kaki-tentang">
+          <h2 id="kaki-tentang">Tentang Tally</h2>
+          <ul>
+            <li><a href="tentang.html">Latar belakang &amp; metode</a></li>
+            <li><a href="panduan.html">Panduan juri &amp; API</a></li>
+            <li><a href="desain.html">Sistem desain</a></li>
+            <li><a href="petugas.html">Panel petugas (demo)</a></li>
+          </ul>
+        </nav>
+        <div>
+          <h2>Sumber data</h2>
+          <ul>
+            <li><a href="https://ppid.depok.go.id/wp-content/uploads/2026/08/2.-CALK-2025.pdf" target="_blank" rel="noopener">CaLK Pemkot Depok TA 2025</a></li>
+            <li><a href="https://spse.inaproc.id/depok" target="_blank" rel="noopener">LPSE Kota Depok</a></li>
+            <li><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="kaki__bawah">
+        <span>Karya tim error 404 untuk Web In Action, Multimedia In Action 2026.</span>
+        <span>Data proyek diakses 24 Oktober 2026. Tally menampilkan data, bukan tuduhan.</span>
+      </div>
+    </div>
   </footer>
-
+  <script src="js/config.js"></script>
   <script src="js/util.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/layout.js"></script>
   <script src="js/lapor.js"></script>
 </body>
 </html>

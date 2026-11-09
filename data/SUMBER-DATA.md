@@ -35,13 +35,20 @@ Koordinat diambil dari OpenStreetMap (Nominatim). Proyek dengan presisi `kelurah
 
 Seluruh 241 paket tender LPSE Kota Depok tahun anggaran 2025 dan 2026 (konstruksi dan konsultansi): kode, nama, tahap, HPS, nilai kontrak. Dipakai kalau tim mau menambah proyek atau membuat statistik (misalnya jumlah tender gagal/ulang).
 
-## 4. Yang TIDAK boleh dikarang
+## 4. Database (Supabase)
 
-- **Laporan warga.** Jangan membuat laporan contoh fiktif. Mulai dari kosong, lalu tim mengunjungi 3–5 proyek di daftar ini dan mengirim laporan asli (foto + GPS) lewat formulir Tally. Itu sekaligus jadi bahan video demo.
+- Tabel `proyek` diisi dari `proyek.json` lewat `supabase/schema.sql` (24 baris). Kalau koordinat dikoreksi setelah survei, ubah di **Table Editor** Supabase **dan** di `proyek.json` supaya mode cadangan ikut benar.
+- Tabel `laporan`, `riwayat`, dan `dukungan` berisi laporan warga. Lokasi pelapor tidak disimpan, hanya jarak ke titik proyek (`jarak_meter`) dan hasil cek radius (`terverifikasi`).
+- Laporan dari kunjungan lapangan tim punya `sumber = 'tim'` (dikirim dari perangkat yang mengaktifkan mode kunjungan tim di Panel Petugas).
+- Ekspor semua laporan: Panel Petugas → **Unduh JSON**.
+
+## 5. Yang TIDAK boleh dikarang
+
+- **Laporan warga.** Jangan membuat laporan contoh fiktif. Tim mengunjungi proyek di daftar ini dan mengirim laporan asli (foto + GPS) lewat formulir Tally dengan mode kunjungan tim aktif. Itu sekaligus jadi bahan video demo.
 - **Status "Lapangan".** Hanya boleh berasal dari laporan nyata.
 - **Penilaian penyedia.** Tally menampilkan data, bukan tuduhan. Kalau ada pola menarik (misalnya satu penyedia memenangkan beberapa paket), tampilkan sebagai fakta beserta sumbernya, tanpa kesimpulan.
 
-## 5. Cara cek ulang sendiri (LPSE)
+## 6. Cara cek ulang sendiri (LPSE)
 
 1. Buka https://spse.inaproc.id/depok/lelang
 2. Pilih Tahun Anggaran 2025 atau 2026, Jenis Pengadaan "Pekerjaan Konstruksi".

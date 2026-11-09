@@ -1,46 +1,130 @@
-const id = new URLSearchParams(location.search).get('id');
+// Detail proyek: struk resmi (kata dokumen) vs laporan warga (kata warga)
+(async function () {
+  const id = param('id');
+  let proyek = [], laporan = [];
+  try {
+    [proyek, laporan] = await Promise.all([Data.proyek(), Data.laporan()]);
+  } catch (e) {
+    $('#kepala-proyek').innerHTML += `<p class="galat">${ikon('peringatan')}Data gagal dimuat: ${esc(e.message)}</p>`;
+    return;
+  }
+  const p = proyek.find((x) => x.id === id);
+  if (!p) {
+    $('#kepala-proyek').innerHTML = `<div class="kosong"><h1 style="font-size:var(--t-2xl)">Proyek tidak ditemukan</h1>
+      <p>Kode proyek "${esc(id || '')}" tidak ada di data Tally. Pilih proyek dari peta.</p><a class="tombol" href="peta.html">${ikon('peta')}Buka peta proyek</a></div>`;
+    $('#belah').hidden = true;
+    $$('.dua-kolom').forEach((x) => (x.hidden = true));
+    return;
+  }
 
-siapkanLaporan().then(() => fetch('data/proyek.json'))
-  .then((res) => {
-    if (!res.ok) throw new Error('Gagal memuat proyek.json: ' + res.status);
-    return res.json();
-  })
-  .then((data) => {
-    const wadah = document.getElementById('struk');
-    const p = data.find((x) => x.id === id);
-    if (!p) { wadah.textContent = 'Proyek tidak ditemukan.'; return; }
+  document.title = `${p.id} ${p.nama} · Tally`;
+  const lp = laporan.filter((l) => l.proyekId === p.id);
+  const st = statusLapangan(lp);
+  const sinyal = sinyalProyek(p, proyek, lp);
 
-    // Ada laporan warga yang bilang "tidak sesuai"?
-    const laporan = ambilLaporan().filter((l) => l.proyekId === id);
-    const bermasalah = laporan.some((l) => l.kondisi !== 'Sesuai');
+  // --- Kepala ---
+  $('#kepala-proyek').innerHTML = `
+    <nav class="remah" aria-label="Remah roti"><a href="peta.html?id=${encodeURIComponent(p.id)}">Peta proyek</a><span aria-hidden="true">/</span><span>${esc(p.id)}</span></nav>
+    <h1>${esc(p.nama)}</h1>
+    <div class="baris" style="margin-top:14px;gap:8px">
+      <span class="chip">${esc(p.sektor)}</span><span class="chip">Tahun ${esc(p.tahun)}</span>
+      <span class="chip">${ikon('pin')}Kec. ${esc(p.kecamatan)}</span><span class="chip">${esc(p.dinas)}</span>
+    </div>`;
 
-    wadah.innerHTML = `
-      <p class="font-mono text-xs tracking-widest text-slate-500">STRUK PROYEK · ${p.id}</p>
-      <h1 class="text-2xl font-extrabold mt-1">${p.nama}</h1>
-      <dl class="font-mono text-sm mt-4 space-y-1">
-        <div class="flex justify-between border-b border-dashed"><dt>Pagu</dt><dd>${rupiah(p.pagu)}</dd></div>
-        <div class="flex justify-between border-b border-dashed"><dt>HPS</dt><dd>${rupiahAtau(p.hps, '—')}</dd></div>
-        <div class="flex justify-between border-b border-dashed"><dt>Nilai kontrak</dt><dd>${rupiahAtau(p.nilaiKontrak)}</dd></div>
-        <div class="flex justify-between border-b border-dashed"><dt>Penyedia</dt><dd>${p.penyedia || 'tidak tercantum di sumber'}</dd></div>
-        <div class="flex justify-between border-b border-dashed"><dt>Dinas</dt><dd>${p.dinas}</dd></div>
-        <div class="flex justify-between border-b border-dashed"><dt>Jadwal</dt><dd>${p.jadwal}</dd></div>
-        ${p.nilaiKontrak ? `<div class="flex justify-between font-bold border-t-2 border-slate-900 pt-1">
-          <dt>SELISIH PAGU</dt><dd>${rupiah(p.pagu - p.nilaiKontrak)}</dd></div>` : ''}
-      </dl>
-      <p class="text-xs text-slate-500 mt-2">
-        Sumber: <a class="underline" target="_blank" href="${p.sumberUrl}">${p.sumber}</a>
-        ${p.kodeTender ? ' · Kode tender ' + p.kodeTender : ''}<br>
-        Lokasi di peta: ${p.catatanLokasi}
-      </p>
-      <p class="mt-4 p-3 rounded ${bermasalah ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
-        Resmi: <b>${p.statusResmi}</b> · Lapangan:
-        <b>${bermasalah ? laporan.length + ' laporan tidak sesuai' : 'belum ada masalah'}</b>
-      </p>
-      <a href="lapor.html?id=${p.id}" class="inline-block mt-4 bg-slate-900 text-white px-4 py-2 rounded">
-        Laporkan kondisi di lapangan
-      </a>`;
-  })
-  .catch((err) => {
-    document.getElementById('struk').textContent = 'Error: ' + err.message;
-    console.error(err);
+  // --- Struk proyek (kata dokumen) ---
+  const rasio = p.nilaiKontrak && p.hps ? p.nilaiKontrak / p.hps : null;
+  const baris = (k, v) => `<div class="struk__baris"><dt>${k}</dt><dd>${v}</dd></div>`;
+  $('#struk-proyek').innerHTML = `
+    <p class="struk__judul">STRUK PROYEK</p>
+    <p class="struk__sub">${esc(p.id)}${p.kodeTender ? '<br>Kode tender ' + esc(p.kodeTender) : ''}</p>
+    <dl>
+      ${baris('Pagu anggaran', rupiah(p.pagu))}
+      ${baris('HPS', rupiahAtau(p.hps, 'tidak tercantum'))}
+      ${baris('Nilai kontrak', rupiahAtau(p.nilaiKontrak))}
+      ${rasio ? baris('Kontrak ÷ HPS', persen(rasio * 100)) : ''}
+      ${baris('Penyedia', esc(p.penyedia || 'tidak tercantum di sumber'))}
+      ${baris('Status resmi', esc(p.statusResmi))}
+      ${baris('Jadwal', esc(p.jadwal || '—'))}
+      ${p.nilaiKontrak ? `<div class="struk__baris struk__baris--tebal"><dt>SELISIH DARI PAGU</dt><dd>${rupiah(p.pagu - p.nilaiKontrak)}</dd></div>` : ''}
+    </dl>
+    <p class="struk__catatan">Sumber: <a href="${esc(p.sumberUrl)}" target="_blank" rel="noopener">${esc(p.sumber)}</a>. Sumber dana: ${esc(p.sumberDana || '—')}.</p>`;
+
+
+  // --- Kata warga ---
+  const kasus = kelompokkanKasus(lp.filter((l) => l.status !== 'Ditolak'));
+  const ringkas = st.kunci === 'belum'
+    ? `<p><b>Belum ada warga yang mengecek proyek ini.</b> Kalau kamu bisa ke lokasinya, foto kondisinya dan kirim lewat Tally. Laporan pertama langsung menentukan stempel proyek ini.</p>`
+    : st.kunci === 'tidak'
+      ? `<p><b>${st.terbuka.length} kasus terbuka tidak cocok dengan dokumen.</b> Resmi tertulis "${esc(p.statusResmi)}", tetapi warga melaporkan ${[...new Set(st.terbuka.map((k) => k.kondisi.toLowerCase()))].join(' dan ')}.</p>`
+      : `<p><b>Laporan warga cocok dengan dokumen.</b> ${kasus.some((k) => kondisiMasalah(k.kondisi)) ? 'Masalah yang pernah dilaporkan sudah ditangani.' : 'Belum ada masalah yang dilaporkan.'}</p>`;
+
+  const kartuKasus = (k) => {
+    const foto = [k, ...k.anggota].filter((x) => x.fotoUrl);
+    const gps = [k, ...k.anggota].filter((x) => x.terverifikasi).length;
+    const total = 1 + k.jumlahDukungan;
+    return `<article class="kasus" data-kode="${esc(k.kode)}">
+      <div class="kasus__kepala">
+        <div class="baris" style="gap:6px">${lencanaKondisi(k.kondisi)}${lencanaStatus(k.status)}</div>
+        <span class="pudar" style="font-size:var(--t-xs);font-family:var(--huruf-struk)">${esc(k.kode)}</span>
+      </div>
+      ${k.catatan ? `<p>“${esc(k.catatan)}”</p>` : ''}
+      ${k.temuan && k.temuan.length ? `<div class="baris" style="gap:6px">${k.temuan.map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</div>` : ''}
+      ${foto.length ? `<div class="kasus__foto">${foto.map((x) => `<a href="${esc(x.fotoUrl)}" target="_blank" rel="noopener"><img src="${esc(x.fotoUrl)}" alt="Foto bukti ${esc(x.kode)}" loading="lazy" width="112" height="84"></a>`).join('')}</div>` : ''}
+      ${k.tanggapan ? `<p class="sinyal sinyal--info">${ikon('pesan')}<span><b>Tanggapan petugas:</b> ${esc(k.tanggapan)}</span></p>` : ''}
+      <div class="kasus__meta">
+        <span>${ikon('warga')}${total} warga melihat ini</span>
+        <span>${ikon('lokasi')}${gps ? gps + ' lolos cek GPS' : 'belum ada yang lolos cek GPS'}</span>
+        <span>${ikon('jam')}${sejak(k.dibuatPada)}</span>
+      </div>
+      ${statusTutup(k.status) ? '' : `<div class="baris">
+        <button class="tombol tombol--garis tombol--kecil" type="button" data-dukung="${esc(k.kode)}">${ikon('mata')}Saya juga lihat ini</button>
+        <a class="tombol tombol--polos tombol--kecil" href="lacak.html?kode=${encodeURIComponent(k.kode)}">Lacak kasus</a>
+      </div>`}
+    </article>`;
+  };
+
+  const teksBagikan = `Cek proyek "${p.nama}" (${p.id}) di Tally. Cocok di dokumen, cocok di lapangan? ${urlSitus('detail.html?id=' + encodeURIComponent(p.id))}`;
+  $('#kata-warga').innerHTML = `
+    <div class="stempel-tempel">${stempelHTML(st, true, true)}</div>
+    ${ringkas}
+    <div style="margin-top:16px">${kasus.map(kartuKasus).join('')}</div>
+    <div class="baris" style="margin-top:20px">
+      <a class="tombol" href="lapor.html?id=${encodeURIComponent(p.id)}">${ikon('kamera')}Laporkan kondisi di lapangan</a>
+      <a class="tombol tombol--garis" href="${linkWhatsApp(teksBagikan)}" target="_blank" rel="noopener">${ikon('bagikan')}Ajak warga lain lewat WhatsApp</a>
+    </div>`;
+
+  // "Saya juga lihat ini"
+  $('#kata-warga').addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-dukung]');
+    if (!b) return;
+    b.setAttribute('aria-busy', 'true');
+    b.disabled = true;
+    try {
+      const r = await Data.dukung(b.dataset.dukung);
+      const meta = b.closest('.kasus').querySelector('.kasus__meta span');
+      const kasusIni = kasus.find((k) => k.kode === r.kode);
+      if (meta && kasusIni) meta.innerHTML = `${ikon('warga')}${1 + r.jumlah_dukungan} warga melihat ini`;
+      b.removeAttribute('aria-busy');
+      b.innerHTML = `${ikon('centang')}${r.baru ? 'Terima kasih, dukunganmu tercatat' : 'Kamu sudah mendukung kasus ini'}`;
+      notif(r.baru ? 'Dukungan tercatat. Kasus ini naik prioritas di antrean petugas.' : 'Perangkat ini sudah pernah mendukung kasus ini.');
+    } catch (err) {
+      b.removeAttribute('aria-busy');
+      b.disabled = false;
+      notif('Gagal mencatat dukungan: ' + err.message);
+    }
   });
+
+  // --- Sinyal ---
+  $('#sinyal').innerHTML = sinyal.length
+    ? sinyal.map((s) => `<div class="sinyal ${s.kunci === 'hps' ? '' : 'sinyal--info'}">${ikon(s.kunci === 'hps' ? 'peringatan' : 'info')}<span><b>${esc(s.judul)}.</b> ${esc(s.teks)}${s.kunci === 'hps' ? ' <a href="tentang.html#metode">Cara kami menghitung</a>.' : ''}</span></div>`).join('')
+    : '<p class="pudar">Tidak ada sinyal khusus dari data resmi. Laporan warga tetap dibutuhkan untuk memastikan kondisinya.</p>';
+
+  // --- Peta mini dengan radius verifikasi ---
+  const pm = L.map('peta-mini', { scrollWheelZoom: false }).setView([p.lat, p.lng], p.presisiLokasi === 'titik' ? 16 : 14);
+  lapisanPeta(pm);
+  L.marker([p.lat, p.lng], { icon: pinPeta(st, p.presisiLokasi), title: p.nama }).addTo(pm);
+  const radius = batasRadius(p);
+  L.circle([p.lat, p.lng], { radius, color: '#4a2fa0', weight: 1.5, fillOpacity: 0.06, dashArray: '4 6' }).addTo(pm);
+  $('#catatan-lokasi').innerHTML = `${esc(p.catatanLokasi || '')}. Lingkaran = radius cek GPS ${radius} m. ` +
+    (radius > 300 ? 'Radius dilonggarkan karena titiknya masih perkiraan.' : 'Titik ini lokasi bangunan atau ruas jalannya.');
+})();

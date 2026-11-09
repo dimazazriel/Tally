@@ -2,35 +2,137 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel Petugas — Tally</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel petugas (demo) · Tally</title>
+  <meta name="description" content="Verifikasi dan tindak lanjut laporan warga.">
+  <meta name="theme-color" content="#1b1b3a">
+  <meta property="og:title" content="Panel petugas (demo) · Tally">
+  <meta property="og:description" content="Verifikasi dan tindak lanjut laporan warga.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/plus-jakarta-sans-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/plus-jakarta-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="bg-stone-50 text-slate-900">
-  <nav class="flex flex-wrap gap-4 p-4 bg-white shadow-sm">
-    <a href="petugas.html" class="text-amber-700">Panel Petugas (demo)</a>
-    <a href="index.html" class="font-extrabold">Tally</a>
-    <a href="peta.html">Peta Proyek</a>
-    <a href="lacak.html">Lacak Laporan</a>
-    <a href="skor.html">Papan Skor</a>
-    <a href="tentang.html">Tentang</a>
-  </nav>
+<body data-halaman="petugas">
+  <a class="lewati" href="#isi">Lewati ke konten</a>
+  <header class="kepala">
+    <div class="wadah kepala__baris">
+      <a class="logo" href="index.html" aria-label="Tally, ke beranda"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M8 6v20M13.5 6v20M19 6v20M24.5 6v20"/><path d="M4 21.5 28.5 10"/></svg><span>Tally</span></a>
+      <nav class="navigasi" aria-label="Utama">
+        <a href="peta.html">Peta proyek</a>
+        <a href="skor.html">Papan skor</a>
+        <a href="tentang.html">Tentang</a>
+        <a href="panduan.html">Panduan juri</a>
+      </nav>
+      <form class="lacak-cepat" action="lacak.html" role="search" aria-label="Lacak laporan">
+        <label for="lacak-cepat-kode" class="sr">Kode lacak</label>
+        <input id="lacak-cepat-kode" name="kode" placeholder="TLY-XXXX" autocomplete="off" spellcheck="false" maxlength="8">
+        <button class="tombol tombol--garis tombol--kecil" type="submit">Lacak</button>
+      </form>
+    </div>
+  </header>
+  <main id="isi">
+    <div class="wadah">
+      <div class="halaman-kepala">
+        <h1>Panel petugas</h1>
+        <p class="pengantar">Periksa bukti, teruskan ke dinas, dan tutup kasus. Mode demo: dilindungi PIN, bukan akun login.</p>
+      </div>
 
-  <main class="max-w-5xl mx-auto p-4">
-    <h1 class="text-2xl font-extrabold">Panel Petugas</h1>
-    <p class="text-sm text-amber-700 mb-3">Mode demo: di sistem nyata halaman ini memerlukan login petugas.</p>
-    <button id="ekspor" class="border px-3 py-2 rounded mb-3">Unduh laporan (JSON)</button>
-    <div class="overflow-x-auto">
-      <table class="w-full bg-white rounded-xl text-sm">
-        <thead><tr class="text-left border-b"><th class="p-2">Kode</th><th class="p-2">Proyek</th><th class="p-2">Kondisi</th><th class="p-2">Status</th></tr></thead>
-        <tbody id="tabelLaporan"></tbody>
-      </table>
+      <section class="gerbang panel" id="gerbang" aria-labelledby="judul-gerbang">
+        <h2 id="judul-gerbang" class="panel__judul" style="font-size:var(--t-l)">Masuk dengan PIN petugas</h2>
+        <form id="form-pin" class="tumpuk">
+          <label class="isian"><span>PIN</span>
+            <input class="kotak" id="pin" type="password" inputmode="text" autocomplete="off" required aria-describedby="bantuan-pin galat-pin">
+          </label>
+          <p class="bantuan" id="bantuan-pin">Juri: PIN demo ada di <a href="panduan.html#pin">halaman Panduan</a>.</p>
+          <p class="galat" id="galat-pin" hidden></p>
+          <button class="tombol tombol--lebar" type="submit"><svg aria-hidden="true"><use href="#i-kunci"></use></svg>Masuk</button>
+        </form>
+      </section>
+
+      <section id="ruang" hidden>
+        <div class="saring-tab">
+          <div class="tab" role="group" aria-label="Saring antrean">
+            <button type="button" data-saring="tindakan" aria-pressed="true">Perlu tindakan</button>
+            <button type="button" data-saring="lewat" aria-pressed="false">Lewat batas</button>
+            <button type="button" data-saring="tutup" aria-pressed="false">Selesai &amp; ditolak</button>
+            <button type="button" data-saring="semua" aria-pressed="false">Semua</button>
+          </div>
+          <div class="baris">
+            <label class="sr" for="cari-kasus">Cari kode atau proyek</label>
+            <input class="kotak" id="cari-kasus" type="search" placeholder="Cari kode / proyek" style="width:220px;min-height:40px">
+            <button class="tombol tombol--garis tombol--kecil" type="button" id="ekspor"><svg aria-hidden="true"><use href="#i-unduh"></use></svg>Unduh JSON</button>
+            <button class="tombol tombol--polos tombol--kecil" type="button" id="keluar"><svg aria-hidden="true"><use href="#i-keluar"></use></svg>Keluar</button>
+          </div>
+        </div>
+        <div class="petugas-tata">
+          <div class="tabel-gulir">
+            <table class="tabel">
+              <thead><tr><th scope="col">Kode</th><th scope="col">Proyek</th><th scope="col">Kondisi</th><th scope="col" class="kanan">Warga</th><th scope="col">GPS</th><th scope="col">Umur</th><th scope="col">Status</th></tr></thead>
+              <tbody id="antrean"></tbody>
+            </table>
+          </div>
+          <aside class="petugas-tata__detail panel" id="detail-kasus" aria-live="polite">
+            <p class="pudar">Pilih satu kasus di tabel untuk melihat bukti dan menindaklanjutinya.</p>
+          </aside>
+        </div>
+        <section class="panel" id="panel-admin" hidden style="margin-top:32px" aria-labelledby="judul-admin">
+          <h2 id="judul-admin" class="panel__judul" style="font-size:var(--t-l)">Khusus tim (PIN admin)</h2>
+          <div class="baris" style="justify-content:space-between">
+            <p style="max-width:60ch;font-size:var(--t-s)"><b>Mode kunjungan tim</b> menandai laporan dari perangkat ini sebagai kunjungan lapangan tim Tally. Aktifkan di HP yang dibawa ke lokasi proyek.</p>
+            <button class="tombol tombol--garis" type="button" id="mode-tim"></button>
+          </div>
+        </section>
+      </section>
     </div>
   </main>
-
+  <footer class="kaki">
+    <div class="wadah">
+      <div class="kaki__grid">
+        <div>
+          <a class="logo" href="index.html"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M8 6v20M13.5 6v20M19 6v20M24.5 6v20"/><path d="M4 21.5 28.5 10"/></svg><span>Tally</span></a>
+          <p>Mencocokkan anggaran proyek Kota Depok dengan bukti foto dan GPS dari warga, lalu melacak tindak lanjutnya.</p>
+          <span class="status-db">Memeriksa database…</span>
+        </div>
+        <nav aria-labelledby="kaki-jelajahi">
+          <h2 id="kaki-jelajahi">Jelajahi</h2>
+          <ul>
+            <li><a href="index.html">Beranda</a></li>
+            <li><a href="peta.html">Peta proyek</a></li>
+            <li><a href="lapor.html">Laporkan proyek</a></li>
+            <li><a href="lacak.html">Lacak laporan</a></li>
+            <li><a href="skor.html">Papan skor</a></li>
+          </ul>
+        </nav>
+        <nav aria-labelledby="kaki-tentang">
+          <h2 id="kaki-tentang">Tentang Tally</h2>
+          <ul>
+            <li><a href="tentang.html">Latar belakang &amp; metode</a></li>
+            <li><a href="panduan.html">Panduan juri &amp; API</a></li>
+            <li><a href="desain.html">Sistem desain</a></li>
+            <li><a href="petugas.html">Panel petugas (demo)</a></li>
+          </ul>
+        </nav>
+        <div>
+          <h2>Sumber data</h2>
+          <ul>
+            <li><a href="https://ppid.depok.go.id/wp-content/uploads/2026/08/2.-CALK-2025.pdf" target="_blank" rel="noopener">CaLK Pemkot Depok TA 2025</a></li>
+            <li><a href="https://spse.inaproc.id/depok" target="_blank" rel="noopener">LPSE Kota Depok</a></li>
+            <li><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="kaki__bawah">
+        <span>Karya tim error 404 untuk Web In Action, Multimedia In Action 2026.</span>
+        <span>Data proyek diakses 24 Oktober 2026. Tally menampilkan data, bukan tuduhan.</span>
+      </div>
+    </div>
+  </footer>
+  <script src="js/config.js"></script>
   <script src="js/util.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/layout.js"></script>
   <script src="js/petugas.js"></script>
 </body>
 </html>

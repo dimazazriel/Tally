@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sistem desain · Tally</title>
+  <meta name="description" content="Token warna, tipografi, dan komponen sistem desain struk & stempel Tally.">
+  <meta name="theme-color" content="#1b1b3a">
+  <meta property="og:title" content="Sistem desain · Tally">
+  <meta property="og:description" content="Token warna, tipografi, dan komponen sistem desain struk & stempel Tally.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/plus-jakarta-sans-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/plus-jakarta-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-halaman="desain">
+  <a class="lewati" href="#isi">Lewati ke konten</a>
+  <header class="kepala">
+    <div class="wadah kepala__baris">
+      <a class="logo" href="index.html" aria-label="Tally, ke beranda"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M8 6v20M13.5 6v20M19 6v20M24.5 6v20"/><path d="M4 21.5 28.5 10"/></svg><span>Tally</span></a>
+      <nav class="navigasi" aria-label="Utama">
+        <a href="peta.html">Peta proyek</a>
+        <a href="skor.html">Papan skor</a>
+        <a href="tentang.html">Tentang</a>
+        <a href="panduan.html">Panduan juri</a>
+      </nav>
+      <form class="lacak-cepat" action="lacak.html" role="search" aria-label="Lacak laporan">
+        <label for="lacak-cepat-kode" class="sr">Kode lacak</label>
+        <input id="lacak-cepat-kode" name="kode" placeholder="TLY-XXXX" autocomplete="off" spellcheck="false" maxlength="8">
+        <button class="tombol tombol--garis tombol--kecil" type="submit">Lacak</button>
+      </form>
+    </div>
+  </header>
+  <main id="isi">
+    <div class="wadah">
+      <div class="halaman-kepala">
+        <h1>Sistem desain struk dan stempel</h1>
+        <p class="pengantar">Setiap proyek punya struk; warga yang memberi stempel. Halaman ini mendokumentasikan token dan komponen yang dipakai di seluruh Tally.</p>
+      </div>
+      <div class="dokumen">
+        <nav class="daftar-isi" aria-label="Daftar isi">
+          <ol>
+            <li><a href="#alasan">Alasan desain</a></li>
+            <li><a href="#warna">Warna dan kontras</a></li>
+            <li><a href="#huruf">Tipografi</a></li>
+            <li><a href="#komponen">Komponen dan state</a></li>
+          </ol>
+        </nav>
+        <article class="prosa" style="max-width:none">
+          <h2 id="alasan">Alasan desain</h2>
+          <ul>
+            <li><b>Struk dan stempel diambil dari dunia subjeknya.</b> Anggaran dibaca warga seperti struk belanja; hasil cek lapangan diberi stempel seperti cap basah di dokumen resmi. Metafora ini sekaligus menjelaskan nama Tally (dua belahan yang harus cocok).</li>
+            <li><b>Latar abu semen, kertas hangat.</b> Latar dingin mewakili dunia infrastruktur; hanya benda kertas (struk, resi) yang punya bayangan, jadi mata langsung menemukan dokumennya.</li>
+            <li><b>Plus Jakarta Sans</b> dirancang untuk identitas kota Jakarta, pas untuk layanan warga Jabodetabek. <b>IBM Plex Mono</b> hanya dipakai di dalam struk dan kode lacak, seperti cetakan printer kasir.</li>
+            <li><b>Warna status selalu disertai ikon dan teks</b> (cocok, tidak cocok, perlu dicek, belum dicek), supaya tetap terbaca oleh pengguna buta warna dan saat dicetak.</li>
+            <li><b>Satu momen gerak:</b> stempel "dihentakkan" saat status proyek tampil atau laporan diterima. Selebihnya tenang, dan semua gerak dimatikan bila pengguna memilih "kurangi gerakan".</li>
+          </ul>
+
+          <h2 id="warna">Warna dan kontras</h2>
+          <p>Rasio kontras dihitung langsung di halaman ini terhadap latar semen (#eceef1) dan putih. Standar WCAG AA: minimal 4,5 untuk teks biasa.</p>
+          <div class="contoh-warna" id="contoh-warna"></div>
+
+          <h2 id="huruf">Tipografi</h2>
+          <div class="panel tumpuk">
+            <p style="font-size:var(--t-hero);font-weight:800;letter-spacing:-0.035em;line-height:1">Cocok di dokumen</p>
+            <p style="font-size:var(--t-2xl);font-weight:800;letter-spacing:-0.02em">Judul bagian 31,25 px</p>
+            <p style="font-size:var(--t-l);font-weight:700">Subjudul 20 px</p>
+            <p>Teks isi 16 px, tinggi baris 1,6, maksimal sekitar 70 karakter per baris supaya nyaman dibaca.</p>
+            <p style="font-family:var(--huruf-struk)">STRUK · IBM Plex Mono · TLY-7K2Q · Rp1.684.682.707.880</p>
+            <p class="pudar" style="font-size:var(--t-s)">Skala modular rasio 1,25: 12,8 / 14,4 / 16 / 20 / 25 / 31,25 / 39 px; judul besar memakai clamp() agar menyesuaikan lebar layar.</p>
+          </div>
+
+          <h2 id="komponen">Komponen dan state</h2>
+          <h3>Stempel status lapangan</h3>
+          <div class="panel baris" style="gap:40px;padding:32px">
+            <span class="stempel">Belum dicek<small>menunggu warga</small></span>
+            <span class="stempel stempel--cocok">Cocok<small>hasil cek warga</small></span>
+            <span class="stempel stempel--tidak">Tidak cocok<small>hasil cek warga</small></span>
+            <span class="stempel stempel--cap">Diterima<small>Tally</small></span>
+          </div>
+          <h3>Tombol</h3>
+          <div class="panel baris">
+            <button class="tombol" type="button">Kirim laporan</button>
+            <button class="tombol tombol--garis" type="button">Lacak sekarang</button>
+            <button class="tombol tombol--polos" type="button">Lihat struk</button>
+            <button class="tombol tombol--hijau" type="button">Selesaikan kasus</button>
+            <button class="tombol tombol--bahaya" type="button">Hapus permanen</button>
+            <button class="tombol" type="button" disabled>Nonaktif</button>
+            <button class="tombol" type="button" aria-busy="true">Memuat</button>
+          </div>
+          <p class="pudar" style="font-size:var(--t-s)">Fokus papan ketik: garis ungu 3 px. Tinggi minimal tombol 44 px agar mudah disentuh.</p>
+          <h3>Lencana dan sinyal</h3>
+          <div class="panel tumpuk">
+            <div class="baris" id="contoh-lencana"></div>
+            <div class="sinyal"><svg aria-hidden="true"><use href="#i-peringatan"></use></svg><span><b>Kontrak 70,4% dari HPS.</b> Di bawah batas 80% HPS, layak dicek mutunya.</span></div>
+            <div class="sinyal sinyal--info"><svg aria-hidden="true"><use href="#i-info"></use></svg><span><b>Titik lokasi masih perkiraan.</b> Laporan dari lokasi sebenarnya membantu memperbaikinya.</span></div>
+          </div>
+          <h3>Isian</h3>
+          <div class="panel tumpuk">
+            <label class="isian"><span>Kode lacak</span><input class="kotak kotak--kode" placeholder="TLY-XXXX"></label>
+            <label class="isian"><span>Isian dengan galat</span><input class="kotak" aria-invalid="true" value="TLY-0O0"><span class="galat"><svg aria-hidden="true"><use href="#i-peringatan"></use></svg>Formatnya TLY- lalu 4 huruf/angka.</span></label>
+          </div>
+          <h3>Struk</h3>
+          <div class="kertas-bayang" style="max-width:380px">
+            <article class="struk">
+              <p class="struk__judul">STRUK PROYEK</p>
+              <p class="struk__sub">PRJ-014</p>
+              <dl>
+                <div class="struk__baris"><dt>Pagu</dt><dd>Rp245.470.790</dd></div>
+                <div class="struk__baris"><dt>Nilai kontrak</dt><dd>Rp172.661.000</dd></div>
+                <div class="struk__baris struk__baris--tebal"><dt>SELISIH</dt><dd>Rp72.809.790</dd></div>
+              </dl>
+            </article>
+          </div>
+          <h3>Keadaan kosong</h3>
+          <div class="kosong"><h3>Belum ada foto dari lapangan</h3><p>Keadaan kosong selalu memberi langkah berikutnya, bukan sekadar "tidak ada data".</p><a class="tombol" href="peta.html">Pilih proyek di peta</a></div>
+        </article>
+      </div>
+    </div>
+  </main>
+  <footer class="kaki">
+    <div class="wadah">
+      <div class="kaki__grid">
+        <div>
+          <a class="logo" href="index.html"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M8 6v20M13.5 6v20M19 6v20M24.5 6v20"/><path d="M4 21.5 28.5 10"/></svg><span>Tally</span></a>
+          <p>Mencocokkan anggaran proyek Kota Depok dengan bukti foto dan GPS dari warga, lalu melacak tindak lanjutnya.</p>
+          <span class="status-db">Memeriksa database…</span>
+        </div>
+        <nav aria-labelledby="kaki-jelajahi">
+          <h2 id="kaki-jelajahi">Jelajahi</h2>
+          <ul>
+            <li><a href="index.html">Beranda</a></li>
+            <li><a href="peta.html">Peta proyek</a></li>
+            <li><a href="lapor.html">Laporkan proyek</a></li>
+            <li><a href="lacak.html">Lacak laporan</a></li>
+            <li><a href="skor.html">Papan skor</a></li>
+          </ul>
+        </nav>
+        <nav aria-labelledby="kaki-tentang">
+          <h2 id="kaki-tentang">Tentang Tally</h2>
+          <ul>
+            <li><a href="tentang.html">Latar belakang &amp; metode</a></li>
+            <li><a href="panduan.html">Panduan juri &amp; API</a></li>
+            <li><a href="desain.html">Sistem desain</a></li>
+            <li><a href="petugas.html">Panel petugas (demo)</a></li>
+          </ul>
+        </nav>
+        <div>
+          <h2>Sumber data</h2>
+          <ul>
+            <li><a href="https://ppid.depok.go.id/wp-content/uploads/2026/08/2.-CALK-2025.pdf" target="_blank" rel="noopener">CaLK Pemkot Depok TA 2025</a></li>
+            <li><a href="https://spse.inaproc.id/depok" target="_blank" rel="noopener">LPSE Kota Depok</a></li>
+            <li><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="kaki__bawah">
+        <span>Karya tim error 404 untuk Web In Action, Multimedia In Action 2026.</span>
+        <span>Data proyek diakses 24 Oktober 2026. Tally menampilkan data, bukan tuduhan.</span>
+      </div>
+    </div>
+  </footer>
+  <script src="js/config.js"></script>
+  <script src="js/util.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/desain.js"></script>
+</body>
+</html>
