@@ -1,6 +1,6 @@
 const id = new URLSearchParams(location.search).get('id');
 
-fetch('data/proyek.json')
+siapkanLaporan().then(() => fetch('data/proyek.json'))
   .then((res) => {
     if (!res.ok) throw new Error('Gagal memuat proyek.json: ' + res.status);
     return res.json();

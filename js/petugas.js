@@ -25,3 +25,12 @@ document.getElementById('tabelLaporan').addEventListener('change', (e) => {
 });
 
 siapkanLaporan().then(render);
+
+// Blob = "file sementara" yang dibuat di memori browser, lalu diunduh
+document.getElementById('ekspor').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(ambilLaporan(), null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'laporan.json';
+  a.click();
+});

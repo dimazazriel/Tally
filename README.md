@@ -27,13 +27,13 @@ flowchart TD
 ## Progres
 - [x] Beranda: Struk Belanja Kota (data CaLK Pemkot Depok TA 2025)
 - [x] Peta Proyek: 24 proyek, filter sektor, tahun, dan pencarian
-- [x] Detail proyek (struk proyek: pagu, HPS, kontrak, selisih)
-- [x] Formulir Lapor: foto, GPS, kode lacak
+- [x] Detail proyek (pagu, HPS, kontrak, selisih, sumber)
+- [x] Formulir Lapor: foto, GPS dengan cek jarak, kode lacak
 - [x] Lacak Laporan dengan batas waktu 7 hari
-- [x] Papan Skor dinas dan Panel Petugas (demo)
+- [x] Papan Skor dinas dan Panel Petugas (demo, tanpa login)
 - [x] Halaman Tentang dan metodologi
-- [ ] Laporan lapangan nyata (kunjungan tim)
-- [ ] Penyempurnaan tampilan di HP
+- [x] Laporan lapangan asli: [jumlah] laporan dari kunjungan tim, [tanggal]
+- [x] Aksesibilitas: label form, judul tab, favicon
 
 ## Catatan data
 - Realisasi APBD 2025: CaLK Pemerintah Kota Depok TA 2025 (PPID Kota Depok)

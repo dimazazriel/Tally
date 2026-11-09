@@ -19,9 +19,14 @@ function buatKodeLacak() {
 }
 
 // Siapkan laci laporan kosong. Tidak ada laporan contoh:
-// semua laporan harus berasal dari kunjungan lapangan yang nyata.
 async function siapkanLaporan() {
-  if (!localStorage.getItem('wujud_laporan')) simpanLaporan([]);
+  if (ambilLaporan().length) return;          // sudah ada isinya → biarkan
+  try {
+    const res = await fetch('data/laporan.json');
+    simpanLaporan(res.ok ? await res.json() : []);
+  } catch (e) {
+    simpanLaporan([]);
+  }
 }
 
 // Angka yang belum tersedia (null) ditampilkan dengan keterangan

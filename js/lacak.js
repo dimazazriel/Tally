@@ -30,7 +30,9 @@ document.getElementById('formLacak').addEventListener('submit', (e) => {
 
 // Kalau datang dari tautan "Lacak sekarang", langsung tampilkan
 const kodeDariLink = new URLSearchParams(location.search).get('kode');
-if (kodeDariLink) {
-  document.getElementById('kode').value = kodeDariLink;
-  tampilkanLacak(kodeDariLink);
-}
+siapkanLaporan().then(() => {
+  if (kodeDariLink) {
+    document.getElementById('kode').value = kodeDariLink;
+    tampilkanLacak(kodeDariLink);
+  }
+});
