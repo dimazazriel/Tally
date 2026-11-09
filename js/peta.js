@@ -110,5 +110,7 @@
   if (param('status')) $('#filter-status').value = param('status');
   if (param('sektor')) $('#filter-sektor').value = param('sektor');
   saring();
+  // Tampilkan semua proyek di layar, apa pun ukuran jendelanya
+  if (proyek.length) peta.fitBounds(L.latLngBounds(proyek.map((p) => [p.lat, p.lng])), { padding: [40, 40], maxZoom: 14 });
   if (param('id')) tandai(param('id'));
 })();
