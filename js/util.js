@@ -240,5 +240,28 @@ function jarakMeter(a, b) {
 }
 const batasRadius = (p) => (p.presisiLokasi === 'titik' || p.presisiLokasi === 'jalan' ? 300 : 1500);
 
+// ---------- Cek bukti laporan ----------
+// Sebuah laporan "terverifikasi" kalau ketiga syarat ini terpenuhi
+// (dihitung ulang di database oleh fungsi kirim_laporan):
+//   1. foto dijepret langsung dari kamera di Tally, bukan dari galeri;
+//   2. lokasi diambil saat memotret, dengan akurasi GPS ≤ BATAS_AKURASI_GPS;
+//   3. jaraknya ke titik proyek masih di dalam radius (300 m / 1.500 m).
+const BATAS_AKURASI_GPS = 100;
+
+// Ringkasan hasil cek untuk resi, Lacak, Detail, dan Panel Petugas.
+// fotoLangsung null = laporan lama sebelum aturan ini (asal foto tidak dicatat).
+function cekBukti(l) {
+  const jarak = l.jarakMeter, akurasi = l.akurasiMeter;
+  if (l.terverifikasi) {
+    return { lolos: true, teks: 'terverifikasi, ' + jarakTeks(jarak) + ' dari proyek' };
+  }
+  const alasan = [];
+  if (l.fotoLangsung === false) alasan.push('foto dari galeri');
+  if (jarak == null) alasan.push('tanpa lokasi');
+  else if (akurasi != null && akurasi > BATAS_AKURASI_GPS) alasan.push('GPS kurang akurat (±' + Math.round(akurasi) + ' m)');
+  else if (!alasan.length) alasan.push('di luar radius, ' + jarakTeks(jarak));
+  return { lolos: false, teks: 'belum terverifikasi: ' + alasan.join(', ') };
+}
+
 // Lokasi proyek yang baru diketahui sampai titik tengah kelurahan/kecamatan
 const lokasiKira = (presisi) => presisi === 'kelurahan' || presisi === 'kecamatan';

@@ -74,7 +74,7 @@
     <figure class="foto-laporan">
       <img src="${esc(l.fotoUrl)}" alt="Foto laporan ${esc(l.kondisi)} di ${esc(namaProyek(l.proyekId))}" loading="lazy" width="400" height="300">
       <figcaption>
-        <div class="baris" style="gap:6px">${lencanaKondisi(l.kondisi)}${l.terverifikasi ? '<span class="lencana lencana--cocok">' + ikon('lokasi') + 'GPS cocok</span>' : ''}</div>
+        <div class="baris" style="gap:6px">${lencanaKondisi(l.kondisi)}${l.terverifikasi ? '<span class="lencana lencana--cocok">' + ikon('centang') + 'Terverifikasi</span>' : ''}</div>
         <a href="detail.html?id=${encodeURIComponent(l.proyekId)}">${esc(namaProyek(l.proyekId))}</a>
         <span class="pudar" style="font-size:var(--t-xs)">${esc(l.kode)} · ${sejak(l.dibuatPada)}</span>
       </figcaption>

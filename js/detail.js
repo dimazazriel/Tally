@@ -73,7 +73,7 @@
       ${k.tanggapan ? `<p class="sinyal sinyal--info">${ikon('pesan')}<span><b>Tanggapan petugas:</b> ${esc(k.tanggapan)}</span></p>` : ''}
       <div class="kasus__meta">
         <span>${ikon('warga')}${total} warga melihat ini</span>
-        <span>${ikon('lokasi')}${gps ? gps + ' lolos cek GPS' : 'belum ada yang lolos cek GPS'}</span>
+        <span>${ikon('lokasi')}${gps ? gps + ' laporan terverifikasi (foto langsung + GPS)' : 'belum ada laporan terverifikasi'}</span>
         <span>${ikon('jam')}${sejak(k.dibuatPada)}</span>
       </div>
       ${statusTutup(k.status) ? '' : `<div class="baris">

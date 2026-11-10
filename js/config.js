@@ -18,6 +18,12 @@ window.TALLY_CONFIG = {
   videoUrl: '',       // isi dengan link YouTube video pitching
   wireframeUrl: 'https://drive.google.com/drive/folders/1bDgpapqF1obCILRsqxQeroLVkDWHJAB3',
 
+  // Foto bukti diambil langsung dari kamera di halaman lapor. Kalau kamera
+  // tidak bisa dibuka (laptop tanpa kamera, izin ditolak), unggahan galeri
+  // tetap boleh tetapi laporannya TIDAK PERNAH terverifikasi.
+  // Ubah ke false agar formulir tidak menawarkan unggahan galeri sama sekali.
+  izinkanFotoGaleri: true,
+
   // PIN demo Panel Petugas (sengaja dibagikan ke juri di halaman Panduan)
   pinDemo: '404404',
   batasHariSla: 7

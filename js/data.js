@@ -30,6 +30,8 @@ const Data = (() => {
   const keLaporan = (r) => ({
     kode: r.kode, proyekId: r.proyek_id, kondisi: r.kondisi, temuan: r.temuan || [], catatan: r.catatan,
     fotoUrl: urlFoto(r.foto_path), jarakMeter: r.jarak_meter, terverifikasi: r.terverifikasi, status: r.status,
+    fotoLangsung: r.foto_langsung == null ? null : r.foto_langsung === true,
+    akurasiMeter: r.akurasi_meter == null ? null : Number(r.akurasi_meter),
     indukKode: r.induk_kode, jumlahDukungan: r.jumlah_dukungan || 0, sumber: r.sumber, tanggapan: r.tanggapan,
     fotoSesudahUrl: urlFoto(r.foto_sesudah_path), dibuatPada: r.dibuat_pada, diperbaruiPada: r.diperbarui_pada
   });
@@ -159,21 +161,26 @@ const Data = (() => {
     return nama;
   }
 
-  async function kirimLaporan({ proyekId, kondisi, temuan = [], catatan = '', fotoPath = null, lat = null, lng = null }) {
+  async function kirimLaporan({ proyekId, kondisi, temuan = [], catatan = '', fotoPath = null, lat = null, lng = null,
+                                fotoLangsung = false, akurasi = null }) {
     await siap();
     const kunciTim = (() => { try { return localStorage.getItem('tally_kunci_tim'); } catch (e) { return null; } })();
     if (mode === 'online') {
       const args = {
         p_proyek_id: proyekId, p_kondisi: kondisi, p_temuan: temuan, p_catatan: catatan || null,
-        p_foto_path: fotoPath, p_lat: lat, p_lng: lng, p_kunci_tim: kunciTim, p_perangkat_id: perangkatId()
+        p_foto_path: fotoPath, p_lat: lat, p_lng: lng, p_kunci_tim: kunciTim, p_perangkat_id: perangkatId(),
+        p_foto_langsung: fotoLangsung === true, p_akurasi_meter: akurasi
       };
-      try {
-        return await rpc('kirim_laporan', args);
-      } catch (e) {
-        // Database belum memakai schema.sql terbaru (fungsi lama tanpa p_perangkat_id): kirim ulang tanpa ID perangkat
-        if (e.kode !== 'PGRST202') throw e;
-        delete args.p_perangkat_id;
-        return rpc('kirim_laporan', args);
+      // Database yang belum menjalankan schema.sql terbaru belum mengenal parameter
+      // baru (error PGRST202). Coba lagi dengan parameter versi sebelumnya.
+      const versiLama = [['p_foto_langsung', 'p_akurasi_meter'], ['p_perangkat_id']];
+      for (let i = 0; ; i++) {
+        try {
+          return await rpc('kirim_laporan', args);
+        } catch (e) {
+          if (e.kode !== 'PGRST202' || i >= versiLama.length) throw e;
+          versiLama[i].forEach((k) => delete args[k]);
+        }
       }
     }
     // --- mode cadangan: tiru logika fungsi kirim_laporan di database ---
@@ -181,10 +188,11 @@ const Data = (() => {
     if (!p) throw new Error('Proyek tidak ditemukan');
     const semua = baca(LK);
     let jarak = null, batas = null, verif = false;
+    const akurasiBulat = akurasi == null ? null : Math.round(akurasi);
     if (lat != null && lng != null) {
       jarak = Math.round(jarakMeter({ lat, lng }, p));
       batas = batasRadius(p);
-      verif = jarak <= batas;
+      verif = jarak <= batas && fotoLangsung === true && akurasiBulat != null && akurasiBulat <= BATAS_AKURASI_GPS;
     }
     const induk = semua.filter((l) => l.proyek_id === proyekId && l.kondisi === kondisi && !l.induk_kode && !statusTutup(l.status))
       .sort((a, b) => new Date(a.dibuat_pada) - new Date(b.dibuat_pada))[0];
@@ -192,6 +200,7 @@ const Data = (() => {
     const kini = new Date().toISOString();
     semua.push({
       kode, proyek_id: proyekId, kondisi, temuan, catatan: catatan || null, foto_path: fotoPath, jarak_meter: jarak,
+      foto_langsung: fotoLangsung === true, akurasi_meter: akurasiBulat,
       terverifikasi: verif, status: induk ? induk.status : 'Diterima', induk_kode: induk ? induk.kode : null,
       jumlah_dukungan: 0, sumber: 'publik', tanggapan: null, foto_sesudah_path: null, dibuat_pada: kini, diperbarui_pada: kini
     });
@@ -210,7 +219,8 @@ const Data = (() => {
     const r = baca(RK);
     r.push({ kode, status: 'Diterima', catatan: induk ? 'Digabung ke kasus ' + induk.kode : 'Laporan masuk', waktu: kini });
     tulis(RK, r);
-    return { kode, induk_kode: induk ? induk.kode : null, status: induk ? induk.status : 'Diterima', jarak_meter: jarak, batas_meter: batas, terverifikasi: verif, sumber: 'publik' };
+    return { kode, induk_kode: induk ? induk.kode : null, status: induk ? induk.status : 'Diterima', jarak_meter: jarak, batas_meter: batas,
+             terverifikasi: verif, foto_langsung: fotoLangsung === true, akurasi_meter: akurasiBulat, sumber: 'publik' };
   }
 
   async function dukung(kode) {

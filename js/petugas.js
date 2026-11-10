@@ -78,7 +78,7 @@
         <td style="max-width:220px">${esc(namaProyek(k.proyekId))}<br><small class="pudar">${esc(k.proyekId)}</small></td>
         <td>${lencanaKondisi(k.kondisi)}</td>
         <td class="kanan angka">${1 + k.jumlahDukungan}</td>
-        <td>${gps ? `<span class="lencana lencana--cocok">${ikon('centang')}lolos</span>` : k.jarakMeter == null ? '<span class="pudar">tanpa lokasi</span>' : `<span class="lencana lencana--cek">${jarakTeks(k.jarakMeter)}</span>`}</td>
+        <td>${gps ? `<span class="lencana lencana--cocok">${ikon('centang')}terverifikasi</span>` : k.fotoLangsung === false ? '<span class="lencana lencana--cek">foto galeri</span>' : k.jarakMeter == null ? '<span class="pudar">tanpa lokasi</span>' : `<span class="lencana lencana--cek">${jarakTeks(k.jarakMeter)}</span>`}</td>
         <td class="angka">${sla.lewat ? `<span class="lencana lencana--tidak">${ikon('jam')}hari ${sla.hari}/${sla.batas}</span>` : sla.selesai ? `<span class="pudar">${sla.hari} hari</span>` : `hari ${sla.hari}/${sla.batas}`}</td>
         <td>${lencanaStatus(k.status)}</td>
       </tr>`;
@@ -99,7 +99,7 @@
       <p class="pudar" style="font-size:var(--t-s);margin:4px 0 12px">${esc(k.proyekId)} · ${lencanaKondisi(k.kondisi)} · ${1 + k.jumlahDukungan} warga</p>
       <div class="kasus__foto" style="margin-bottom:12px">${semua.filter((x) => x.fotoUrl).map((x) => `<a href="${esc(x.fotoUrl)}" target="_blank" rel="noopener"><img src="${esc(x.fotoUrl)}" alt="Bukti ${esc(x.kode)}" width="112" height="84"></a>`).join('') || '<span class="pudar">Tanpa foto</span>'}</div>
       <ul style="margin:0 0 12px;padding-left:1.1em;font-size:var(--t-s);display:grid;gap:4px">
-        ${semua.map((x) => `<li><code>${esc(x.kode)}</code> ${x.terverifikasi ? 'lolos cek GPS' : x.jarakMeter == null ? 'tanpa lokasi' : 'di luar radius'}${x.jarakMeter != null ? ' (' + jarakTeks(x.jarakMeter) + ')' : ''}${x.catatan ? ': “' + esc(x.catatan) + '”' : ''}${x.temuan && x.temuan.length ? ' · ' + x.temuan.map(esc).join(', ') : ''}</li>`).join('')}
+        ${semua.map((x) => `<li><code>${esc(x.kode)}</code> ${esc(cekBukti(x).teks)}${x.akurasiMeter != null ? ' · GPS ±' + x.akurasiMeter + ' m' : ''}${x.catatan ? ': “' + esc(x.catatan) + '”' : ''}${x.temuan && x.temuan.length ? ' · ' + x.temuan.map(esc).join(', ') : ''}</li>`).join('')}
       </ul>
       <ol class="linimasa">${rk.map((r) => `<li class="${r.status === 'Ditolak' ? 'ditolak' : 'selesai'}"><span class="linimasa__titik">${ikon(r.status === 'Ditolak' ? 'silang' : 'centang')}</span><div><b>${esc(r.status)}</b><small>${tanggal(r.waktu)}</small>${r.catatan && r.catatan !== 'Laporan masuk' ? `<q>${esc(r.catatan)}</q>` : ''}</div></li>`).join('')}</ol>
       <form id="form-aksi" class="tumpuk" style="margin-top:8px">

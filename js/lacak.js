@@ -57,7 +57,7 @@
               <div class="struk__baris"><dt>Proyek</dt><dd>${esc(p.id || '')}</dd></div>
               <div class="struk__baris"><dt>Kondisi</dt><dd>${esc(lap.kondisi)}</dd></div>
               <div class="struk__baris"><dt>Dikirim</dt><dd>${tanggal(lap.dibuatPada)}</dd></div>
-              <div class="struk__baris"><dt>Cek GPS</dt><dd>${lap.jarakMeter == null ? 'tanpa lokasi' : (lap.terverifikasi ? 'lolos, ' : 'di luar radius, ') + jarakTeks(lap.jarakMeter)}</dd></div>
+              <div class="struk__baris"><dt>Cek bukti</dt><dd>${esc(cekBukti(lap).teks)}</dd></div>
               ${lap.indukKode ? `<div class="struk__baris"><dt>Kasus induk</dt><dd>${esc(lap.indukKode)}</dd></div>` : ''}
               <div class="struk__baris struk__baris--tebal"><dt>STATUS</dt><dd>${esc(kasus.status)}</dd></div>
             </dl>

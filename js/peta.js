@@ -112,7 +112,7 @@
     PetaTally.tandaiAktif(penanda.get(id), true);
     $$('#daftar button').forEach((b) => { if (b.dataset.id === id) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); });
     if (!peta) return;
-    // Lingkaran = area tempat laporan warga dianggap lolos cek GPS
+    // Lingkaran = radius cek GPS: salah satu syarat laporan terverifikasi
     PetaTally.aturArea(peta, 'area-cek', PetaTally.lingkaran(p.lng, p.lat, batasRadius(p)));
     popup.setOffset(PetaTally.offsetPopup(p.presisiLokasi)).setLngLat([p.lng, p.lat]).setHTML(popupHTML(p));
     if (!popup.isOpen()) popup.addTo(peta);
