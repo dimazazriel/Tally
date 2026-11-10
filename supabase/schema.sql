@@ -75,6 +75,15 @@ create table if not exists public.laporan (
 create index if not exists laporan_proyek_idx on public.laporan (proyek_id);
 create index if not exists laporan_induk_idx  on public.laporan (induk_kode);
 
+-- Bukti tambahan (aman dijalankan ulang di database yang sudah berisi laporan):
+--   foto_langsung : true  = dijepret dari kamera di halaman Tally
+--                   false = diunggah dari galeri (kamera tidak bisa dibuka)
+--                   null  = laporan lama, sebelum aturan ini ada
+--   akurasi_meter : akurasi GPS perangkat pada saat memotret
+alter table public.laporan add column if not exists foto_langsung boolean;
+alter table public.laporan add column if not exists akurasi_meter int;
+create index if not exists laporan_waktu_idx on public.laporan (dibuat_pada);
+
 -- Jejak perubahan status (untuk halaman Lacak dan hitungan waktu respons).
 create table if not exists public.riwayat (
   id      bigint generated always as identity primary key,
@@ -95,6 +104,7 @@ create table if not exists public.dukungan (
 );
 -- Laporan gabungan yang menambah hitungan warga (diisi oleh kirim_laporan).
 alter table public.dukungan add column if not exists laporan_kode text;
+create index if not exists dukungan_waktu_idx on public.dukungan (kode, dibuat_pada);
 
 -- Pengaturan rahasia (hash PIN). Tidak bisa dibaca dari website.
 create table if not exists public.pengaturan (
@@ -188,21 +198,36 @@ $$;
 -- ---------------------------------------------------------------------
 
 -- Kirim laporan baru. Lokasi pelapor TIDAK disimpan: yang disimpan hanya
--- jarak ke titik proyek dan apakah lolos cek radius.
+-- jarak ke titik proyek, akurasi GPS, dan apakah lolos cek bukti.
 -- p_perangkat_id (ID acak per perangkat, opsional) hanya disimpan di tabel
 -- dukungan yang tidak bisa dibaca publik, agar satu orang tidak bisa
 -- menaikkan hitungan "warga melihat ini" berkali-kali.
+--
+-- Laporan "terverifikasi" bila SEMUA syarat ini terpenuhi:
+--   1. foto dijepret langsung dari kamera di Tally (p_foto_langsung);
+--   2. akurasi GPS saat memotret ≤ 100 m (p_akurasi_meter);
+--   3. jarak ke titik proyek ≤ 300 m (titik/jalan) atau ≤ 1.500 m
+--      (proyek yang titiknya masih titik tengah kelurahan/kecamatan).
+-- Laporan yang tidak memenuhi syarat tetap diterima, tetapi tidak
+-- terverifikasi, sehingga petugas tahu bukti mana yang perlu dicek ulang.
+--
+-- Rem banjir: maksimal 10 laporan per proyek dan 60 laporan seluruhnya
+-- dalam 10 menit. Batas ini dijaga database, jadi tidak bisa dilewati
+-- dengan mengubah kode website.
 drop function if exists public.kirim_laporan(text,text,text[],text,text,double precision,double precision,text);
+drop function if exists public.kirim_laporan(text,text,text[],text,text,double precision,double precision,text,text);
 create or replace function public.kirim_laporan(
-  p_proyek_id    text,
-  p_kondisi      text,
-  p_temuan       text[]           default '{}',
-  p_catatan      text             default null,
-  p_foto_path    text             default null,
-  p_lat          double precision default null,
-  p_lng          double precision default null,
-  p_kunci_tim    text             default null,
-  p_perangkat_id text             default null
+  p_proyek_id     text,
+  p_kondisi       text,
+  p_temuan        text[]           default '{}',
+  p_catatan       text             default null,
+  p_foto_path     text             default null,
+  p_lat           double precision default null,
+  p_lng           double precision default null,
+  p_kunci_tim     text             default null,
+  p_perangkat_id  text             default null,
+  p_foto_langsung boolean          default false,
+  p_akurasi_meter double precision default null
 ) returns json
 language plpgsql security definer
 set search_path = public, tally_privat
@@ -218,7 +243,21 @@ declare
   v_sumber text := 'publik';
   v_baru   int := 0;
   v_perangkat text := nullif(trim(p_perangkat_id), '');
+  v_langsung  boolean := coalesce(p_foto_langsung, false);
+  v_akurasi   int := round(p_akurasi_meter);
 begin
+  -- Rem banjir laporan (dijaga database)
+  if (select count(*) from public.laporan
+       where proyek_id = p_proyek_id and dibuat_pada > now() - interval '10 minutes') >= 10 then
+    raise exception 'Proyek ini baru saja menerima banyak laporan. Coba lagi dalam beberapa menit.'
+      using errcode = '22023';
+  end if;
+  if (select count(*) from public.laporan
+       where dibuat_pada > now() - interval '10 minutes') >= 60 then
+    raise exception 'Tally sedang menerima terlalu banyak laporan. Coba lagi dalam beberapa menit.'
+      using errcode = '22023';
+  end if;
+
   select * into v_proyek from public.proyek where id = p_proyek_id;
   if not found then
     raise exception 'Proyek % tidak ditemukan', p_proyek_id using errcode = 'P0002';
@@ -249,11 +288,19 @@ begin
   if v_perangkat is not null and char_length(v_perangkat) not between 8 and 64 then
     raise exception 'ID perangkat tidak valid' using errcode = '22023';
   end if;
+  if p_akurasi_meter is not null and p_akurasi_meter not between 0 and 100000 then
+    raise exception 'Akurasi lokasi tidak valid' using errcode = '22023';
+  end if;
+  if p_lat is null then
+    v_akurasi := null;   -- tanpa lokasi, akurasi tidak berarti
+  end if;
 
   if p_lat is not null then
     v_jarak := round(tally_privat.jarak_meter(p_lat, p_lng, v_proyek.lat, v_proyek.lng));
     v_batas := case when v_proyek.presisi_lokasi in ('titik','jalan') then 300 else 1500 end;
-    v_verif := v_jarak <= v_batas;
+    v_verif := v_jarak <= v_batas
+               and v_langsung
+               and v_akurasi is not null and v_akurasi <= 100;
   end if;
 
   if p_kunci_tim is not null and tally_privat.peran_pin(p_kunci_tim) = 'admin' then
@@ -281,11 +328,13 @@ begin
 
   insert into public.laporan
     (kode, proyek_id, kondisi, temuan, catatan, foto_path,
-     jarak_meter, terverifikasi, status, induk_kode, sumber)
+     jarak_meter, terverifikasi, status, induk_kode, sumber,
+     foto_langsung, akurasi_meter)
   values
     (v_kode, p_proyek_id, p_kondisi, coalesce(p_temuan, '{}'),
      nullif(trim(p_catatan), ''), p_foto_path,
-     v_jarak, v_verif, v_status, v_induk.kode, v_sumber);
+     v_jarak, v_verif, v_status, v_induk.kode, v_sumber,
+     v_langsung, v_akurasi);
 
   insert into public.riwayat (kode, status, catatan)
   values (v_kode, 'Diterima',
@@ -316,7 +365,8 @@ begin
   return json_build_object(
     'kode', v_kode, 'induk_kode', v_induk.kode, 'status', v_status,
     'jarak_meter', v_jarak, 'batas_meter', v_batas,
-    'terverifikasi', v_verif, 'sumber', v_sumber);
+    'terverifikasi', v_verif, 'foto_langsung', v_langsung,
+    'akurasi_meter', v_akurasi, 'sumber', v_sumber);
 end
 $$;
 
@@ -341,6 +391,12 @@ begin
   v_kasus := coalesce(v_lap.induk_kode, v_lap.kode);
   if exists (select 1 from public.laporan where kode = v_kasus and status in ('Selesai','Ditolak')) then
     raise exception 'Kasus % sudah ditutup', v_kasus using errcode = '22023';
+  end if;
+  -- Rem banjir dukungan: maksimal 20 dukungan baru per kasus dalam 10 menit
+  if (select count(*) from public.dukungan
+       where kode = v_kasus and dibuat_pada > now() - interval '10 minutes') >= 20 then
+    raise exception 'Kasus ini baru saja menerima banyak dukungan. Coba lagi dalam beberapa menit.'
+      using errcode = '22023';
   end if;
 
   insert into public.dukungan (kode, perangkat_id)
@@ -498,13 +554,13 @@ end
 $$;
 
 -- Hanya fungsi publik di atas yang boleh dipanggil dari website.
-revoke all on function public.kirim_laporan(text,text,text[],text,text,double precision,double precision,text,text) from public;
+revoke all on function public.kirim_laporan(text,text,text[],text,text,double precision,double precision,text,text,boolean,double precision) from public;
 revoke all on function public.dukung(text,text)           from public;
 revoke all on function public.lacak(text)                 from public;
 revoke all on function public.cek_pin(text)               from public;
 revoke all on function public.perbarui_kasus(text,text,text,text,text) from public;
 revoke all on function public.hapus_laporan(text,text)    from public;
-grant execute on function public.kirim_laporan(text,text,text[],text,text,double precision,double precision,text,text) to anon, authenticated;
+grant execute on function public.kirim_laporan(text,text,text[],text,text,double precision,double precision,text,text,boolean,double precision) to anon, authenticated;
 grant execute on function public.dukung(text,text)        to anon, authenticated;
 grant execute on function public.lacak(text)              to anon, authenticated;
 grant execute on function public.cek_pin(text)            to anon, authenticated;
