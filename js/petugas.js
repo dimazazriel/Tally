@@ -1,6 +1,11 @@
 // Panel petugas: gerbang PIN → antrean kasus → periksa bukti → ubah status
 (function () {
-  let pin = sessionStorage.getItem('tally_pin') || '';
+  const sesi = {
+    ambil: (k) => { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
+    simpan: (k, v) => { try { sessionStorage.setItem(k, v); } catch (e) { /* abaikan */ } },
+    hapus: (k) => { try { sessionStorage.removeItem(k); } catch (e) { /* abaikan */ } }
+  };
+  let pin = sesi.ambil('tally_pin') || '';
   let peran = null, proyek = [], laporan = [], riwayat = [], kasus = [], pilihan = null, saringan = 'tindakan';
 
   const AKSI = {
@@ -28,11 +33,11 @@
     tombol.removeAttribute('aria-busy');
     if (!peran) {
       if (e && $('#galat-pin').hidden) { $('#galat-pin').innerHTML = `${ikon('peringatan')}PIN salah. Periksa lagi.`; $('#galat-pin').hidden = false; }
-      sessionStorage.removeItem('tally_pin');
+      sesi.hapus('tally_pin');
       return;
     }
     pin = nilai;
-    sessionStorage.setItem('tally_pin', pin);
+    sesi.simpan('tally_pin', pin);
     $('#gerbang').hidden = true;
     $('#ruang').hidden = false;
     $('#panel-admin').hidden = peran !== 'admin';
@@ -180,7 +185,7 @@
     render();
   }));
   $('#cari-kasus').addEventListener('input', render);
-  $('#keluar').addEventListener('click', () => { sessionStorage.removeItem('tally_pin'); location.reload(); });
+  $('#keluar').addEventListener('click', () => { sesi.hapus('tally_pin'); location.reload(); });
   $('#mode-tim').addEventListener('click', () => {
     try {
       if (localStorage.getItem('tally_kunci_tim')) { localStorage.removeItem('tally_kunci_tim'); notif('Mode kunjungan tim dimatikan di perangkat ini'); }

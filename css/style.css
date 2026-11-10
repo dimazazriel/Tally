@@ -401,6 +401,9 @@ textarea.kotak { min-height: 110px; resize: vertical; line-height: 1.5; }
 }
 .peta-tata__samping { padding: var(--j5); }
 .peta-tata__peta { position: relative; min-height: 70vh; }
+@media (max-width: 979px) {
+  .peta-tata__peta { order: -1; min-height: 0; height: 62vh; height: 62svh; }
+}
 .peta-tata__peta #peta { position: absolute; inset: 0; }
 .saring { display: grid; gap: var(--j3); grid-template-columns: 1fr 1fr; }
 .saring .isian:first-child { grid-column: 1 / -1; }
@@ -419,34 +422,107 @@ textarea.kotak { min-height: 110px; resize: vertical; line-height: 1.5; }
 .daftar-proyek .baris { grid-column: 2; gap: 6px; margin-top: 4px; }
 .titik-status--cocok { background: var(--cocok) !important; }
 .titik-status--tidak { background: var(--tidak) !important; }
-.legenda { position: absolute; left: 12px; bottom: 24px; z-index: 500; background: var(--putih); border: 1px solid var(--garis); border-radius: var(--r-kecil); padding: 10px 12px; font-size: var(--t-xs); display: grid; gap: 6px; box-shadow: 0 6px 18px -10px rgba(27,27,58,.4); }
-.legenda span { display: flex; align-items: center; gap: 8px; }
-.legenda i { width: 12px; height: 12px; border-radius: 50%; background: var(--belum); }
-.legenda i.cocok { background: var(--cocok); } .legenda i.tidak { background: var(--tidak); }
-.legenda i.kira { background: transparent; border: 2px dashed var(--belum); }
+/* Peta MapLibre: tumpukan lapisan tetap di dalam peta (penanda < kontrol < popup) */
+.maplibregl-map { isolation: isolate; font-family: var(--huruf-ui); background: #eef0f3; color: var(--tinta); }
+.maplibregl-canvas-container { isolation: isolate; }
+.maplibregl-popup { z-index: 3; }
+.maplibregl-ctrl-group { border-radius: 12px; border: 1px solid var(--garis); box-shadow: 0 1px 2px rgba(27,27,58,.1), 0 6px 16px -8px rgba(27,27,58,.35); overflow: hidden; }
+.maplibregl-ctrl-group:not(:empty) { box-shadow: 0 1px 2px rgba(27,27,58,.1), 0 6px 16px -8px rgba(27,27,58,.35); }
+.maplibregl-ctrl-group button { width: 36px; height: 36px; }
+.maplibregl-ctrl button:focus-visible { outline: 3px solid var(--cap); outline-offset: -3px; box-shadow: none; }
+.maplibregl-ctrl-scale { border-color: var(--tinta-pudar); color: var(--tinta-pudar); background: rgba(255,255,255,.85); font: 600 10px/1.4 var(--huruf-ui); }
+.maplibregl-ctrl-attrib { font-size: 11px; }
+.maplibregl-cooperative-gesture-screen { font-family: var(--huruf-ui); font-size: var(--t-m); font-weight: 600; }
 
-/* Penanda peta (Leaflet divIcon) */
-.pin { --warna-pin: var(--belum); position: relative; width: 30px; height: 40px; }
-.pin--cocok { --warna-pin: var(--cocok); }
-.pin--tidak { --warna-pin: var(--tidak); }
-.pin__tubuh {
-  position: absolute; left: 3px; top: 0; width: 24px; height: 24px; border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg); background: var(--warna-pin); border: 2.5px solid #fff; box-shadow: 0 3px 8px rgba(27,27,58,.35);
-}
-.pin svg { position: absolute; left: 8px; top: 5px; width: 14px; height: 14px; color: #fff; }
-/* Titik perkiraan: pin berongga dengan garis putus-putus */
-.pin--kira .pin__tubuh { background: #fff; border: 2.5px dashed var(--warna-pin); }
-.pin--kira svg { color: var(--warna-pin); }
-.pin--aktif .pin__tubuh { box-shadow: 0 0 0 4px rgba(74,47,160,.35), 0 3px 8px rgba(27,27,58,.35); }
-.titik-saya { width: 18px; height: 18px; border-radius: 50%; background: #2563eb; border: 3px solid #fff; box-shadow: 0 0 0 6px rgba(37,99,235,.25); }
-.leaflet-container { font-family: var(--huruf-ui); background: #e7e9ee; }
-.leaflet-tile-pane { filter: saturate(.35) brightness(1.05) contrast(.9); }
-.leaflet-popup-content-wrapper { border-radius: var(--r-panel); box-shadow: 0 12px 28px -12px rgba(27,27,58,.45); }
-.leaflet-popup-content { margin: 14px 16px; font-size: var(--t-s); line-height: 1.45; min-width: 220px; }
-.leaflet-popup-content h3 { font-size: var(--t-m); margin-bottom: 6px; }
+/* Kompas: U di atas, S di bawah; klik = hadap utara, seret = putar */
+.kompas { display: flex; align-items: center; gap: 2px; padding: 3px; background: var(--putih); border: 1px solid var(--garis); border-radius: 999px; box-shadow: 0 1px 2px rgba(27,27,58,.1), 0 6px 16px -8px rgba(27,27,58,.35); }
+.kompas button { border: 0; background: none; padding: 0; margin: 0; cursor: pointer; display: grid; place-items: center; color: var(--tinta); }
+.kompas__putar { width: 34px; height: 34px; border-radius: 50%; transition: background var(--durasi); }
+.kompas__putar:hover { background: var(--semen); }
+.kompas__putar svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.kompas__piringan { width: 50px; height: 50px; border-radius: 50%; touch-action: none; cursor: grab; }
+.kompas__piringan:active { cursor: grabbing; }
+.kompas__piringan svg { width: 50px; height: 50px; overflow: visible; }
+.kompas__bingkai { fill: var(--kertas); stroke: var(--garis); stroke-width: 1; }
+.kompas--miring .kompas__bingkai { stroke: var(--cap); stroke-width: 1.6; }
+.kompas__garis { stroke: var(--tinta-pudar); stroke-width: 1.4; stroke-linecap: round; }
+.kompas__u, .kompas__s { font-family: var(--huruf-ui); font-size: 9.5px; font-weight: 800; text-anchor: middle; }
+.kompas__u { fill: var(--tinta); }
+.kompas__s { fill: var(--tinta-pudar); }
+.kompas__jarum-u { fill: var(--tinta); }
+.kompas__jarum-s { fill: #fff; stroke: var(--tinta-pudar); stroke-width: 1; stroke-linejoin: round; }
+.kompas__poros { fill: var(--kertas); stroke: var(--tinta); stroke-width: 1; }
+.kompas button:focus-visible { outline: 3px solid var(--cap); outline-offset: 1px; }
+
+/* Tombol lokasiku */
+.lokasiku svg { width: 20px; height: 20px; margin: auto; display: block; fill: none; stroke: var(--tinta); stroke-width: 2; stroke-linecap: round; }
+.lokasiku svg circle:first-child { fill: var(--tinta); stroke: none; }
+.lokasiku--aktif svg { stroke: #2563eb; }
+.lokasiku--aktif svg circle:first-child { fill: #2563eb; }
+.lokasiku--mencari svg { animation: kedip .8s ease-in-out infinite alternate; }
+@keyframes kedip { to { opacity: .3; } }
+
+/* Titik lokasi pengguna */
+.titik-saya { width: 22px; height: 22px; position: relative; pointer-events: none; }
+.titik-saya__denyut { position: absolute; inset: 0; border-radius: 50%; background: rgba(37,99,235,.35); animation: denyut 2.2s ease-out infinite; }
+.titik-saya__inti { position: absolute; inset: 2px; border-radius: 50%; background: #2563eb; border: 3px solid #fff; box-shadow: 0 1px 4px rgba(27,27,58,.4); }
+@keyframes denyut { from { transform: scale(.9); opacity: .9; } to { transform: scale(2.8); opacity: 0; } }
+
+/* Penanda proyek. Warna = status, bentuk = ketepatan lokasi */
+.penanda { --warna: var(--belum); display: block; padding: 0; margin: 0; border: 0; background: none; cursor: pointer; line-height: 0; -webkit-tap-highlight-color: transparent; }
+.penanda--cocok { --warna: var(--cocok); }
+.penanda--tidak { --warna: var(--tidak); }
+.penanda__badan { display: block; transform-origin: 50% 100%; transition: transform 160ms ease-out; filter: drop-shadow(0 1px 1px rgba(27,27,58,.35)) drop-shadow(0 3px 5px rgba(27,27,58,.16)); }
+.penanda--kira .penanda__badan { transform-origin: 50% 50%; }
+.penanda svg { display: block; overflow: visible; }
+.penanda__isi { fill: var(--warna); stroke: #fff; stroke-width: 2; stroke-linejoin: round; }
+.penanda__pendar { fill: var(--warna); opacity: .22; }
+.penanda__pilih { fill: none; stroke: var(--cap); stroke-width: 6; stroke-linejoin: round; opacity: 0; }
+.penanda--kira .penanda__pilih { stroke-width: 2.6; }
+.penanda__glif { fill: none; stroke: #fff; stroke-width: 2.9; stroke-linecap: round; stroke-linejoin: round; }
+.penanda__glif .titik { fill: #fff; stroke: none; }
+.penanda:hover .penanda__badan { transform: translateY(-2px); }
+.penanda--kira:hover .penanda__badan { transform: scale(1.08); }
+.penanda--aktif .penanda__badan, .penanda--aktif:hover .penanda__badan { transform: scale(1.22); }
+.penanda--aktif .penanda__pilih { opacity: 1; }
+.penanda:focus-visible { outline: 3px solid var(--cap); outline-offset: 3px; border-radius: 10px; }
+.penanda--diam { cursor: default; }
+.penanda--diam:hover .penanda__badan { transform: none; }
+.peta--memuat { background: #eef0f3; }
+.peta--memuat::after { content: "Memuat peta…"; position: absolute; inset: 0; display: grid; place-items: center; color: var(--tinta-pudar); font-size: var(--t-s); }
+
+/* Keterangan peta (dipindah ke dalam peta sebagai kontrol) */
+.legenda { background: var(--putih); border: 1px solid var(--garis); border-radius: var(--r-kecil); font-size: var(--t-xs); box-shadow: 0 6px 18px -10px rgba(27,27,58,.4); max-width: 240px; }
+.peta-tata__peta > .legenda { position: absolute; left: 12px; bottom: 28px; z-index: 1; }
+.legenda summary { padding: 8px 12px; font-weight: 700; cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.legenda summary::-webkit-details-marker { display: none; }
+.legenda summary::after { content: ""; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-135deg) translate(-2px, -1px); }
+.legenda:not([open]) summary::after { transform: rotate(45deg) translate(-2px, -1px); }
+.legenda__isi { display: grid; gap: 6px; padding: 0 12px 10px; }
+.legenda__isi span { display: flex; align-items: center; gap: 8px; }
+.legenda i { flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--belum); }
+.legenda i.cocok { background: var(--cocok); } .legenda i.tidak { background: var(--tidak); }
+.legenda__pisah { border-top: 1px solid var(--garis); padding-top: 7px; margin-top: 1px; }
+.legenda svg { flex: none; width: 13px; height: 15px; overflow: visible; fill: var(--belum); stroke: #fff; stroke-width: 2; }
+.legenda svg .pendar { fill: var(--belum); opacity: .25; stroke: none; }
+.legenda svg .area { fill: rgba(74,47,160,.1); stroke: var(--cap); stroke-width: 1.4; stroke-dasharray: 2.2 2; }
+
+/* Popup proyek */
+.popup-tally .maplibregl-popup-content { border-radius: var(--r-panel); padding: 14px 16px 12px; font-size: var(--t-s); line-height: 1.45; color: var(--tinta); box-shadow: 0 12px 28px -12px rgba(27,27,58,.45); min-width: 230px; }
+.popup-tally h3 { font-size: var(--t-m); margin: 0 24px 6px 0; line-height: 1.3; }
+.popup-tally .maplibregl-popup-close-button { width: 34px; height: 34px; font-size: 22px; line-height: 1; color: var(--tinta-pudar); border-radius: 0 var(--r-panel) 0 10px; }
+.popup-tally .maplibregl-popup-close-button:hover { background: var(--semen); color: var(--tinta); }
 .popup__aksi { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 .popup__aksi .tombol { color: #fff; }
 .popup__aksi .tombol--garis { color: var(--tinta); }
+.peta-galat { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 8px; padding: var(--j5); text-align: center; background: var(--semen); color: var(--tinta-pudar); font-size: var(--t-s); }
+.peta-galat svg { width: 28px; height: 28px; color: var(--cek); }
+.peta-galat p { max-width: 36ch; }
+@media (prefers-reduced-motion: reduce) {
+  .penanda__badan, .kompas__putar { transition: none; }
+  .titik-saya__denyut { animation: none; opacity: 0; }
+  .lokasiku--mencari svg { animation: none; opacity: .5; }
+}
 
 /* ---------- Beranda ---------- */
 .pahlawan { padding-block: clamp(2.5rem, 6vw, 5rem) clamp(3rem, 7vw, 6rem); overflow: hidden; }
@@ -517,7 +593,7 @@ textarea.kotak { min-height: 110px; resize: vertical; line-height: 1.5; }
 .kasus__meta span { display: inline-flex; align-items: center; gap: 4px; }
 .kasus__meta svg { width: 14px; height: 14px; }
 .kasus p { font-size: var(--t-s); }
-.peta-mini { height: 280px; border-radius: var(--r-panel); overflow: hidden; border: 1px solid var(--garis); }
+.peta-mini { position: relative; height: 280px; border-radius: var(--r-panel); overflow: hidden; border: 1px solid var(--garis); background: #eef0f3; }
 
 /* ---------- Resi (lacak) ---------- */
 .resi { max-width: 760px; }
@@ -587,6 +663,9 @@ pre.kode code { background: none; padding: 0; color: inherit; }
 .contoh-warna figure > div { height: 72px; }
 .contoh-warna figcaption { padding: 10px 12px; font-size: var(--t-xs); display: grid; gap: 2px; }
 .contoh-warna code { font-size: .95em; }
+.contoh-penanda { display: grid; grid-template-columns: auto repeat(3, minmax(0, 1fr)); align-items: center; justify-items: center; gap: var(--j3) var(--j2); max-width: 460px; }
+.contoh-penanda small { font-size: var(--t-xs); color: var(--tinta-pudar); text-align: center; }
+.contoh-penanda .contoh-penanda__baris { justify-self: start; text-align: left; }
 
 /* ---------- 404 ---------- */
 .hilang { display: grid; place-items: center; text-align: center; padding-block: var(--j8); overflow-x: clip; }
@@ -602,3 +681,5 @@ pre.kode code { background: none; padding: 0; color: inherit; }
   .kepala, .kaki, .tombol, .lacak-cepat { display: none !important; }
   body { background: #fff; }
 }
+.contoh-penanda .penanda { cursor: default; }
+.contoh-penanda .penanda:not(.penanda--aktif):hover .penanda__badan { transform: none; }

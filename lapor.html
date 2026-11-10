@@ -12,8 +12,8 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preload" href="assets/fonts/plus-jakarta-sans-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/plus-jakarta-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css">
-  <script src="assets/vendor/leaflet/leaflet.js"></script>
+  <link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin>
+  <link rel="stylesheet" href="assets/vendor/maplibre/maplibre-gl.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body data-halaman="peta">
@@ -162,6 +162,8 @@
   <script src="js/util.js"></script>
   <script src="js/data.js"></script>
   <script src="js/layout.js"></script>
+  <script src="assets/vendor/maplibre/maplibre-gl.js"></script>
+  <script src="js/peta-dasar.js"></script>
   <script src="js/lapor.js"></script>
 </body>
 </html>

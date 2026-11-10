@@ -122,7 +122,7 @@
     "lat": -6.40403,
     "lng": 106.75824,
     "presisiLokasi": "titik",
-    "catatanLokasi": "RSUD Kota Depok, Jl. Muchtar Raya, Sawangan (OpenStreetMap) — cek apakah sama dengan RSUD KiSA"
+    "catatanLokasi": "RSUD KiSA (RSUD Kota Depok), Jl. Raya Muchtar No. 99, Sawangan (OpenStreetMap)"
   },
   {
     "id": "PRJ-006",
@@ -347,7 +347,7 @@
     "lat": -6.38953,
     "lng": 106.81431,
     "presisiLokasi": "kelurahan",
-    "catatanLokasi": "Titik tengah Kel. Depok Jaya — geser ke Jl. Mawar 3 setelah survei"
+    "catatanLokasi": "Titik tengah Kel. Depok Jaya. Paket ada di Jl. Mawar 3 RW 004; titik persisnya belum dipetakan"
   },
   {
     "id": "PRJ-015",
@@ -372,7 +372,7 @@
     "lat": -6.38953,
     "lng": 106.81431,
     "presisiLokasi": "kelurahan",
-    "catatanLokasi": "Titik tengah Kel. Depok Jaya — geser ke Jl. Kenanga setelah survei"
+    "catatanLokasi": "Titik tengah Kel. Depok Jaya. Paket ada di Jl. Kenanga 1 dan 2 RW 005; titik persisnya belum dipetakan"
   },
   {
     "id": "PRJ-016",
@@ -397,7 +397,7 @@
     "lat": -6.36971,
     "lng": 106.84886,
     "presisiLokasi": "kelurahan",
-    "catatanLokasi": "Sekitar Kel. Tugu — geser ke Komplek Areman Baru setelah survei"
+    "catatanLokasi": "Sekitar Kel. Tugu. Paket ada di Komplek Areman Baru RW 013; titik persisnya belum dipetakan"
   },
   {
     "id": "PRJ-017",
@@ -422,7 +422,7 @@
     "lat": -6.44516,
     "lng": 106.85695,
     "presisiLokasi": "kelurahan",
-    "catatanLokasi": "Titik tengah Kel. Cilangkap — geser ke Perum Griya Telaga Permai setelah survei"
+    "catatanLokasi": "Titik tengah Kel. Cilangkap. Paket ada di Perum Griya Telaga Permai RT 004 RW 019; titik persisnya belum dipetakan"
   },
   {
     "id": "PRJ-018",

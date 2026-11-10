@@ -1,5 +1,12 @@
 {
   "rewrites": [
+    { "source": "/peta", "destination": "/peta.html" },
+    { "source": "/detail", "destination": "/detail.html" },
+    { "source": "/lapor", "destination": "/lapor.html" },
+    { "source": "/lacak", "destination": "/lacak.html" },
+    { "source": "/skor", "destination": "/skor.html" },
+    { "source": "/petugas", "destination": "/petugas.html" },
+    { "source": "/tentang", "destination": "/tentang.html" },
     { "source": "/panduan", "destination": "/panduan.html" },
     { "source": "/desain", "destination": "/desain.html" }
   ],

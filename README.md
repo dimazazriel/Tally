@@ -14,10 +14,10 @@ Tally mencocokkan anggaran proyek Pemkot Depok (data LPSE dan CaLK) dengan foto 
 |---|---|
 | Struk Belanja Kota (realisasi APBD 2025) dan meter anggaran vs realisasi | Beranda |
 | "Proyek yang paling perlu dicek", dipilih otomatis dari sinyal data | Beranda |
-| Peta 24 proyek dengan warna status lapangan, saringan sektor/tahun/status, urutan "paling perlu dicek" | Peta proyek |
+| Peta 24 proyek: warna = status lapangan, bentuk = ketepatan lokasi; kompas yang bisa diputar, titik "lokasiku", urutan "terdekat dari lokasiku" | Peta proyek |
 | Struk proyek vs laporan warga dengan stempel status, sinyal kontrak < 80% HPS, peta radius cek GPS | Struk proyek |
 | Lapor: kondisi, temuan, foto (dikompres), cek GPS 300/1.500 m, tanpa nama dan NIK | Lapor |
-| Laporan ganda digabung menjadi satu kasus, tombol "Saya juga lihat ini" (sekali per perangkat) | Struk proyek, Lapor |
+| Laporan ganda digabung menjadi satu kasus; hitungan warga sekali per perangkat, baik lewat "Saya juga lihat ini" maupun laporan lengkap | Struk proyek, Lapor |
 | Lacak ala resi: linimasa status, batas 7 hari, foto sebelum/sesudah, tanggapan petugas | Lacak |
 | Panel petugas (PIN demo): bukti foto dan jarak GPS, verifikasi, teruskan, tolak, selesaikan | Panel petugas |
 | Papan skor per dinas, kecamatan, dan penyedia (dihitung per kasus) | Papan skor |
@@ -28,7 +28,7 @@ Tally mencocokkan anggaran proyek Pemkot Depok (data LPSE dan CaLK) dengan foto 
 
 - **Frontend:** HTML, CSS (sistem desain sendiri, tanpa framework), JavaScript murni
 - **Database:** [Supabase](https://supabase.com) — PostgreSQL dengan Row Level Security, 6 fungsi RPC, Storage untuk foto
-- **Peta:** Leaflet 1.9.4 (di-host sendiri) + OpenStreetMap / CARTO
+- **Peta:** MapLibre GL JS 5.24 (di-host sendiri) + peta dasar [OpenFreeMap](https://openfreemap.org) gaya Positron yang diredam (data © OpenStreetMap), cadangan [VersaTiles](https://versatiles.org). Tanpa kunci API.
 - **Huruf:** Plus Jakarta Sans dan IBM Plex Mono (SIL OFL, di-host sendiri)
 - **Hosting:** Vercel
 
@@ -55,12 +55,17 @@ Website langsung memakai database Tally di Supabase. Untuk mencoba tanpa databas
    on conflict (kunci) do update set nilai = excluded.nilai;
    ```
 4. Isi `supabaseUrl` dan **publishable key** (`sb_publishable_...`) di `js/config.js`. Jangan pernah memasang secret key di website.
+5. Sudah pernah menjalankan `schema.sql` versi lama? Jalankan ulang file terbaru; aman diulang dan data yang ada tidak hilang.
+6. Setelah penjurian, matikan PIN demo agar tidak ada lagi yang bisa mengubah status kasus:
+   ```sql
+   delete from public.pengaturan where kunci = 'pin_petugas_hash';
+   ```
 
 ## Arsitektur dan database
 
 ```mermaid
 flowchart LR
-  W[Website statis<br>HTML · CSS · JS · Leaflet] -- REST + RPC --> S[(Supabase<br>PostgreSQL + RLS)]
+  W[Website statis<br>HTML · CSS · JS · MapLibre] -- REST + RPC --> S[(Supabase<br>PostgreSQL + RLS)]
   W -- unggah foto --> F[Supabase Storage<br>foto-laporan]
   D[LPSE Kota Depok<br>CaLK 2025 · berita] -- disalin --> S
   D -- disalin --> J[data/*.json<br>mode cadangan]
@@ -100,10 +105,11 @@ js/config.js           alamat database + publishable key + tautan pendukung
 js/data.js             satu pintu data: Supabase atau mode cadangan
 js/util.js             format angka, logika kasus, stempel, sinyal, SLA
 js/layout.js           ikon, filter tinta stempel, status database
+js/peta-dasar.js       peta MapLibre: gaya peta, penanda, kompas, lokasiku
 js/<halaman>.js        skrip tiap halaman
 data/                  proyek.json, apbd.json, data mentah LPSE, SUMBER-DATA.md
 supabase/schema.sql    skema database lengkap
-assets/                logo, favicon, huruf, Leaflet
+assets/                logo, favicon, huruf, MapLibre
 ```
 
 ## Progres (Final Submission, 11 November 2026)

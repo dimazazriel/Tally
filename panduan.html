@@ -70,10 +70,10 @@
           <p>Ikuti urutan ini di laptop. Semua data tersimpan di database bersama, jadi perubahan langsung terlihat dari perangkat lain.</p>
           <ol class="langkah-uji">
             <li><b>Beranda</b><p>Baca Struk Belanja Kota dan daftar "Proyek yang paling perlu dicek" yang dipilih otomatis dari data.</p><span class="harapan">Terlihat: struk APBD 2025, empat proyek dengan sinyal, laporan terbaru.</span></li>
-            <li><b>Peta proyek</b><p>Saring sektor "Drainase", lalu klik satu proyek di daftar kiri.</p><span class="harapan">Peta terbang ke penanda; warna penanda = status lapangan.</span></li>
+            <li><b>Peta proyek</b><p>Saring sektor "Drainase", lalu klik satu proyek di daftar kiri. Seret kompas untuk memutar peta dan klik kompas untuk kembali menghadap utara. Tekan tombol lokasi untuk melihat posisimu, lalu pilih urutan "Terdekat dari lokasiku".</p><span class="harapan">Peta bergerak ke penanda; warna penanda = status lapangan, bentuk = ketepatan lokasi, lingkaran ungu = area lolos cek GPS.</span></li>
             <li><b>Struk proyek</b><p>Buka <a href="detail.html?id=PRJ-014">PRJ-014</a>. Bandingkan "Kata dokumen" (struk resmi) dengan "Kata warga", lalu baca sinyal kontrak di bawah 80% HPS.</p><span class="harapan">Stempel menunjukkan cocok, tidak cocok, atau belum dicek.</span></li>
             <li><b>Kirim laporan uji</b><p>Tekan "Laporkan kondisi di lapangan", pilih kondisi, unggah foto apa saja. Lokasi boleh dilewati dari laptop.</p><span class="harapan">Muncul resi dengan kode TLY-XXXX dan stempel DITERIMA.</span></li>
-            <li><b>Uji laporan ganda</b><p>Buka proyek yang sama di peramban lain atau mode penyamaran, lalu tekan "Saya juga lihat ini", atau kirim laporan dengan kondisi yang sama.</p><span class="harapan">Tidak ada tiket baru: dukungan bertambah, laporan kedua digabung ke kasus pertama.</span></li>
+            <li><b>Uji laporan ganda</b><p>Buka proyek yang sama di peramban lain atau mode penyamaran, lalu tekan "Saya juga lihat ini", atau kirim laporan dengan kondisi yang sama.</p><span class="harapan">Tidak ada tiket baru: laporan kedua digabung ke kasus pertama dan hitungan warga bertambah. Perangkat yang sama tidak bisa menambah hitungan dua kali.</span></li>
             <li><b>Panel petugas</b><p>Buka <a href="petugas.html">Panel petugas</a>, masuk dengan PIN demo, pilih kasus tadi, lihat foto dan jarak GPS, lalu tekan "Verifikasi bukti". Laporan iseng bisa ditolak dengan catatan.</p><span class="harapan">Status berubah dan tercatat di linimasa.</span></li>
             <li><b>Lacak</b><p>Masukkan kode tadi di kotak Lacak di kanan atas.</p><span class="harapan">Linimasa, sisa batas waktu 7 hari, dan catatan petugas tampil.</span></li>
             <li><b>Papan skor</b><p>Buka <a href="skor.html">Papan skor</a> dan ganti kelompok ke kecamatan atau penyedia.</p><span class="harapan">Kasus tadi ikut dihitung; sepuluh laporan untuk satu masalah tetap satu kasus.</span></li>
@@ -87,7 +87,7 @@
 
           <h2 id="arsitektur">Arsitektur</h2>
           <div class="arsitektur" aria-label="Diagram arsitektur">
-            <div><b>Website statis</b>HTML, CSS, JavaScript murni, Leaflet + OpenStreetMap. Di-hosting di Vercel.</div>
+            <div><b>Website statis</b>HTML, CSS, JavaScript murni, MapLibre GL JS dengan peta dasar OpenFreeMap (data OpenStreetMap). Di-hosting di Vercel.</div>
             <span aria-hidden="true">REST + RPC</span>
             <div><b>Supabase</b>PostgreSQL dengan Row Level Security dan 6 fungsi; Storage untuk foto.</div>
             <span aria-hidden="true">diisi dari</span>
@@ -129,8 +129,8 @@
 
           <h2 id="batasan">Batasan yang diketahui</h2>
           <ul>
-            <li>Panel petugas memakai PIN demo, belum akun login per petugas dan per dinas.</li>
-            <li>Belum ada pembatasan jumlah laporan per perangkat; laporan iseng ditangani dengan "Tolak" dan dihapus admin.</li>
+            <li>Panel petugas memakai PIN demo, belum akun login per petugas dan per dinas. PIN demo bisa dipakai siapa pun yang membaca halaman ini; semua perubahannya tercatat di linimasa, dan tim menonaktifkannya setelah penjurian.</li>
+            <li>Hitungan warga per kasus dibatasi satu per perangkat, tetapi jumlah laporan per perangkat belum dibatasi. Laporan iseng ditangani dengan "Tolak" dan dihapus admin.</li>
             <li>Lokasi GPS bisa dipalsukan dari perangkat. Cek radius adalah penyaring awal, bukan bukti mutlak; verifikasi petugas tetap diperlukan.</li>
             <li>15 dari 24 proyek koordinatnya masih titik tengah kelurahan atau kecamatan, sehingga radius ceknya dilonggarkan menjadi 1.500 m.</li>
             <li>Data proyek adalah salinan per 24 Oktober 2026, belum sinkron otomatis dengan LPSE.</li>

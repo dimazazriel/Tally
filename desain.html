@@ -94,7 +94,20 @@
           <div class="panel tumpuk">
             <div class="baris" id="contoh-lencana"></div>
             <div class="sinyal"><svg aria-hidden="true"><use href="#i-peringatan"></use></svg><span><b>Kontrak 70,4% dari HPS.</b> Di bawah batas 80% HPS, layak dicek mutunya.</span></div>
-            <div class="sinyal sinyal--info"><svg aria-hidden="true"><use href="#i-info"></use></svg><span><b>Titik lokasi masih perkiraan.</b> Laporan dari lokasi sebenarnya membantu memperbaikinya.</span></div>
+            <div class="sinyal sinyal--info"><svg aria-hidden="true"><use href="#i-info"></use></svg><span><b>Titik lokasi masih perkiraan.</b> Data publik hanya menyebut kelurahannya, jadi penanda diletakkan di titik tengah kelurahan.</span></div>
+          </div>
+          <h3>Penanda peta</h3>
+          <div class="panel tumpuk">
+            <div class="contoh-penanda" id="contoh-penanda">
+              <span></span><small>Belum dicek</small><small>Cocok</small><small>Tidak cocok</small>
+              <small class="contoh-penanda__baris">Lokasi tepat</small>
+              <span data-penanda="belum"></span><span data-penanda="cocok"></span><span data-penanda="tidak"></span>
+              <small class="contoh-penanda__baris">Lokasi perkiraan</small>
+              <span data-penanda="belum" data-kira></span><span data-penanda="cocok" data-kira></span><span data-penanda="tidak" data-kira></span>
+              <small class="contoh-penanda__baris">Dipilih</small>
+              <span data-penanda="tidak" data-aktif></span><span data-penanda="cocok" data-kira data-aktif></span><span></span>
+            </div>
+            <p class="pudar" style="font-size:var(--t-s)">Warna menunjukkan status lapangan dan selalu padat, ditambah ikon supaya tidak bergantung pada warna saja. Bentuk menunjukkan ketepatan lokasi: ujung pin tepat di bangunan atau ruas jalan, sedangkan bulatan berpendar lembut menandai titik tengah kelurahan atau kecamatan karena data publik belum menyebut alamat pastinya. Penanda yang dipilih membesar dan diberi cincin ungu.</p>
           </div>
           <h3>Isian</h3>
           <div class="panel tumpuk">
@@ -165,6 +178,7 @@
   <script src="js/util.js"></script>
   <script src="js/data.js"></script>
   <script src="js/layout.js"></script>
+  <script src="js/peta-dasar.js"></script>
   <script src="js/desain.js"></script>
 </body>
 </html>

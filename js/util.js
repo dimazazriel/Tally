@@ -185,7 +185,7 @@ function sinyalProyek(p, semuaProyek = [], laporanProyek = []) {
     s.push({
       kunci: 'lokasi',
       judul: 'Titik lokasi masih perkiraan',
-      teks: 'Data publik hanya menyebut ' + p.presisiLokasi + '-nya. Laporan dari lokasi sebenarnya membantu memperbaiki titik ini.'
+      teks: 'Data publik hanya menyebut ' + p.presisiLokasi + 'nya, jadi penanda diletakkan di titik tengah ' + p.presisiLokasi + ' dan batas jarak GPS saat melapor dilonggarkan menjadi 1,5 km.'
     });
   }
   if (p.penyedia) {
@@ -212,7 +212,10 @@ function kompresFoto(file, sisiMaks = 1280, mutu = 0.78) {
       const kanvas = document.createElement('canvas');
       kanvas.width = Math.round(gambar.width * skala);
       kanvas.height = Math.round(gambar.height * skala);
-      kanvas.getContext('2d').drawImage(gambar, 0, 0, kanvas.width, kanvas.height);
+      const ktx = kanvas.getContext('2d');
+      ktx.fillStyle = '#fff';   // latar putih: bagian transparan PNG tidak menjadi hitam di JPEG
+      ktx.fillRect(0, 0, kanvas.width, kanvas.height);
+      ktx.drawImage(gambar, 0, 0, kanvas.width, kanvas.height);
       URL.revokeObjectURL(url);
       kanvas.toBlob((blob) => (blob ? selesai(blob) : gagal(new Error('Foto tidak bisa diproses'))), 'image/jpeg', mutu);
     };
@@ -237,23 +240,5 @@ function jarakMeter(a, b) {
 }
 const batasRadius = (p) => (p.presisiLokasi === 'titik' || p.presisiLokasi === 'jalan' ? 300 : 1500);
 
-// Lapisan peta dasar: OpenStreetMap (tanpa kunci API). Warnanya diredam lewat CSS
-// (.leaflet-tile-pane) supaya penanda status lebih menonjol.
-function lapisanPeta(peta) {
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-  }).addTo(peta);
-}
-
-function pinPeta(st, presisi, aktif = false) {
-  const kira = presisi === 'kelurahan' || presisi === 'kecamatan';
-  const ik = st.kunci === 'tidak' ? 'peringatan' : st.kunci === 'cocok' ? 'centang' : 'tanya';
-  return L.divIcon({
-    className: '',
-    html: `<span class="pin pin--${st.kunci} ${kira ? 'pin--kira' : ''} ${aktif ? 'pin--aktif' : ''}"><span class="pin__tubuh"></span>${ikon(ik)}</span>`,
-    iconSize: [30, 40], iconAnchor: [15, 34], popupAnchor: [0, -30]
-  });
-}
-// Penanda bermasalah selalu tampil di atas penanda lain di titik yang sama
-const zPin = (st, aktif) => (aktif ? 3000 : st.kunci === 'tidak' ? 2000 : st.kunci === 'cocok' ? 1000 : 0);
+// Lokasi proyek yang baru diketahui sampai titik tengah kelurahan/kecamatan
+const lokasiKira = (presisi) => presisi === 'kelurahan' || presisi === 'kecamatan';

@@ -105,8 +105,8 @@
       const kasusIni = kasus.find((k) => k.kode === r.kode);
       if (meta && kasusIni) meta.innerHTML = `${ikon('warga')}${1 + r.jumlah_dukungan} warga melihat ini`;
       b.removeAttribute('aria-busy');
-      b.innerHTML = `${ikon('centang')}${r.baru ? 'Terima kasih, dukunganmu tercatat' : 'Kamu sudah mendukung kasus ini'}`;
-      notif(r.baru ? 'Dukungan tercatat. Kasus ini naik prioritas di antrean petugas.' : 'Perangkat ini sudah pernah mendukung kasus ini.');
+      b.innerHTML = `${ikon('centang')}${r.baru ? 'Terima kasih, dukunganmu tercatat' : 'Sudah tercatat dari perangkat ini'}`;
+      notif(r.baru ? 'Dukungan tercatat. Kasus ini naik prioritas di antrean petugas.' : 'Perangkat ini sudah melaporkan atau mendukung kasus ini, jadi tidak dihitung dua kali.');
     } catch (err) {
       b.removeAttribute('aria-busy');
       b.disabled = false;
@@ -120,11 +120,23 @@
     : '<p class="pudar">Tidak ada sinyal khusus dari data resmi. Laporan warga tetap dibutuhkan untuk memastikan kondisinya.</p>';
 
   // --- Peta mini dengan radius verifikasi ---
-  const pm = L.map('peta-mini', { scrollWheelZoom: false }).setView([p.lat, p.lng], p.presisiLokasi === 'titik' ? 16 : 14);
-  lapisanPeta(pm);
-  L.marker([p.lat, p.lng], { icon: pinPeta(st, p.presisiLokasi), title: p.nama }).addTo(pm);
   const radius = batasRadius(p);
-  L.circle([p.lat, p.lng], { radius, color: '#4a2fa0', weight: 1.5, fillOpacity: 0.06, dashArray: '4 6' }).addTo(pm);
-  $('#catatan-lokasi').innerHTML = `${esc(p.catatanLokasi || '')}. Lingkaran = radius cek GPS ${radius} m. ` +
-    (radius > 300 ? 'Radius dilonggarkan karena titiknya masih perkiraan.' : 'Titik ini lokasi bangunan atau ruas jalannya.');
+  $('#catatan-lokasi').innerHTML = `<span>${p.catatanLokasi ? esc(p.catatanLokasi.replace(/\.\s*$/, '')) + '. ' : ''}Lingkaran = radius cek GPS ${radius} m. ` +
+    (radius > 300 ? 'Radius dilonggarkan karena titiknya masih perkiraan.' : 'Titik ini lokasi bangunan atau ruas jalannya.') +
+    '</span> <span id="jarak-saya"></span>';
+  try {
+    const pm = await PetaTally.buat($('#peta-mini'), {
+      pusat: p, zoom: 14, kooperatif: true, lokasi: true,
+      saatLokasi: (pos) => {
+        if (!pos) return;
+        $('#jarak-saya').innerHTML = `<b>Kamu sekitar ${jarakTeks(Math.round(jarakMeter(pos, p)))} dari titik proyek.</b>`;
+      }
+    });
+    PetaTally.pasangPenanda(pm, p, st);
+    PetaTally.aturArea(pm, 'area-cek', PetaTally.lingkaran(p.lng, p.lat, radius));
+    pm.fitBounds(PetaTally.batasLingkaran(p, radius), { padding: 28, duration: 0 });
+    PetaTally.lokasiOtomatis(pm);
+  } catch (e) {
+    PetaTally.tampilkanGagal($('#peta-mini'), e);
+  }
 })();

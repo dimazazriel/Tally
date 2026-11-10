@@ -93,6 +93,8 @@ create table if not exists public.dukungan (
   dibuat_pada  timestamptz not null default now(),
   unique (kode, perangkat_id)
 );
+-- Laporan gabungan yang menambah hitungan warga (diisi oleh kirim_laporan).
+alter table public.dukungan add column if not exists laporan_kode text;
 
 -- Pengaturan rahasia (hash PIN). Tidak bisa dibaca dari website.
 create table if not exists public.pengaturan (
@@ -187,15 +189,20 @@ $$;
 
 -- Kirim laporan baru. Lokasi pelapor TIDAK disimpan: yang disimpan hanya
 -- jarak ke titik proyek dan apakah lolos cek radius.
+-- p_perangkat_id (ID acak per perangkat, opsional) hanya disimpan di tabel
+-- dukungan yang tidak bisa dibaca publik, agar satu orang tidak bisa
+-- menaikkan hitungan "warga melihat ini" berkali-kali.
+drop function if exists public.kirim_laporan(text,text,text[],text,text,double precision,double precision,text);
 create or replace function public.kirim_laporan(
-  p_proyek_id text,
-  p_kondisi   text,
-  p_temuan    text[]           default '{}',
-  p_catatan   text             default null,
-  p_foto_path text             default null,
-  p_lat       double precision default null,
-  p_lng       double precision default null,
-  p_kunci_tim text             default null
+  p_proyek_id    text,
+  p_kondisi      text,
+  p_temuan       text[]           default '{}',
+  p_catatan      text             default null,
+  p_foto_path    text             default null,
+  p_lat          double precision default null,
+  p_lng          double precision default null,
+  p_kunci_tim    text             default null,
+  p_perangkat_id text             default null
 ) returns json
 language plpgsql security definer
 set search_path = public, tally_privat
@@ -209,6 +216,8 @@ declare
   v_verif  boolean := false;
   v_status text := 'Diterima';
   v_sumber text := 'publik';
+  v_baru   int := 0;
+  v_perangkat text := nullif(trim(p_perangkat_id), '');
 begin
   select * into v_proyek from public.proyek where id = p_proyek_id;
   if not found then
@@ -224,12 +233,24 @@ begin
   if coalesce(array_length(p_temuan, 1), 0) > 8 then
     raise exception 'Temuan maksimal 8 butir' using errcode = '22023';
   end if;
+  if exists (select 1 from unnest(coalesce(p_temuan, '{}')) t where t not in
+       ('Tidak ada pekerja di lokasi','Material dibiarkan menumpuk','Tidak ada papan proyek',
+        'Retak atau berlubang','Saluran mampet atau tergenang','Pekerjaan tampak rapi dan selesai')) then
+    raise exception 'Butir temuan tidak dikenal' using errcode = '22023';
+  end if;
   if p_foto_path is not null
      and p_foto_path !~ '^laporan/[A-Za-z0-9_-]+\.(jpg|jpeg|png|webp)$' then
     raise exception 'Alamat foto tidak valid' using errcode = '22023';
   end if;
+  if (p_lat is null) <> (p_lng is null)
+     or p_lat not between -90 and 90 or p_lng not between -180 and 180 then
+    raise exception 'Koordinat lokasi tidak valid' using errcode = '22023';
+  end if;
+  if v_perangkat is not null and char_length(v_perangkat) not between 8 and 64 then
+    raise exception 'ID perangkat tidak valid' using errcode = '22023';
+  end if;
 
-  if p_lat is not null and p_lng is not null then
+  if p_lat is not null then
     v_jarak := round(tally_privat.jarak_meter(p_lat, p_lng, v_proyek.lat, v_proyek.lng));
     v_batas := case when v_proyek.presisi_lokasi in ('titik','jalan') then 300 else 1500 end;
     v_verif := v_jarak <= v_batas;
@@ -238,6 +259,10 @@ begin
   if p_kunci_tim is not null and tally_privat.peran_pin(p_kunci_tim) = 'admin' then
     v_sumber := 'tim';
   end if;
+
+  -- Kunci per (proyek + kondisi) agar dua laporan yang masuk bersamaan
+  -- tidak sama-sama membuka kasus baru untuk masalah yang sama.
+  perform pg_advisory_xact_lock(hashtext('tally:' || p_proyek_id || ':' || p_kondisi));
 
   -- Sudah ada kasus terbuka untuk proyek + kondisi yang sama? Gabungkan.
   select * into v_induk
@@ -269,9 +294,23 @@ begin
                else 'Laporan masuk' end);
 
   if v_induk.kode is not null then
-    update public.laporan
-       set jumlah_dukungan = jumlah_dukungan + 1, diperbarui_pada = now()
-     where kode = v_induk.kode;
+    -- Hitungan warga hanya naik untuk perangkat yang belum pernah
+    -- melaporkan atau mendukung kasus ini. Tanpa ID perangkat, laporan
+    -- dihitung sebagai warga baru (penanda unik per laporan).
+    insert into public.dukungan (kode, perangkat_id, laporan_kode)
+    values (v_induk.kode, coalesce(v_perangkat, 'laporan:' || v_kode), v_kode)
+    on conflict (kode, perangkat_id) do nothing;
+    get diagnostics v_baru = row_count;
+    if v_baru > 0 then
+      update public.laporan
+         set jumlah_dukungan = jumlah_dukungan + 1, diperbarui_pada = now()
+       where kode = v_induk.kode;
+    end if;
+  elsif v_perangkat is not null then
+    -- Pelapor pertama tercatat agar tidak bisa "mendukung" kasusnya sendiri.
+    insert into public.dukungan (kode, perangkat_id)
+    values (v_kode, v_perangkat)
+    on conflict (kode, perangkat_id) do nothing;
   end if;
 
   return json_build_object(
@@ -300,6 +339,9 @@ begin
     raise exception 'Kode % tidak ditemukan', p_kode using errcode = 'P0002';
   end if;
   v_kasus := coalesce(v_lap.induk_kode, v_lap.kode);
+  if exists (select 1 from public.laporan where kode = v_kasus and status in ('Selesai','Ditolak')) then
+    raise exception 'Kasus % sudah ditutup', v_kasus using errcode = '22023';
+  end if;
 
   insert into public.dukungan (kode, perangkat_id)
   values (v_kasus, p_perangkat_id)
@@ -366,6 +408,7 @@ declare
   v_peran text := tally_privat.peran_pin(p_pin);
   v_lap   public.laporan%rowtype;
   v_kasus text;
+  v_lama  text;
 begin
   if v_peran is null then
     raise exception 'PIN petugas salah' using errcode = '28000';
@@ -387,6 +430,22 @@ begin
     raise exception 'Kode % tidak ditemukan', p_kode using errcode = 'P0002';
   end if;
   v_kasus := coalesce(v_lap.induk_kode, v_lap.kode);
+  select status into v_lama from public.laporan where kode = v_kasus;
+
+  -- Alur status sama dengan tombol di Panel Petugas
+  if not (p_status = any (case v_lama
+      when 'Diterima'            then array['Diverifikasi','Ditolak']
+      when 'Diverifikasi'        then array['Diteruskan ke dinas','Ditolak']
+      when 'Diteruskan ke dinas' then array['Ditindaklanjuti']
+      when 'Ditindaklanjuti'     then array['Selesai']
+      when 'Selesai'             then array['Ditindaklanjuti']
+      when 'Ditolak'             then array['Diterima']
+      else array[]::text[] end)) then
+    raise exception 'Status kasus tidak bisa diubah dari "%" ke "%"', v_lama, p_status using errcode = '22023';
+  end if;
+  if p_status in ('Selesai','Ditolak') and nullif(trim(p_catatan), '') is null then
+    raise exception 'Catatan untuk pelapor wajib diisi saat menutup atau menolak kasus' using errcode = '22023';
+  end if;
 
   update public.laporan
      set status = p_status,
@@ -410,8 +469,9 @@ language plpgsql security definer
 set search_path = public, tally_privat
 as $$
 declare
-  v_lap   public.laporan%rowtype;
-  v_hapus int;
+  v_lap    public.laporan%rowtype;
+  v_hapus  int;
+  v_kurang int := 0;
 begin
   if coalesce(tally_privat.peran_pin(p_pin), '') <> 'admin' then
     raise exception 'Butuh PIN admin tim' using errcode = '28000';
@@ -420,25 +480,31 @@ begin
   if not found then
     raise exception 'Kode % tidak ditemukan', p_kode using errcode = 'P0002';
   end if;
+  if v_lap.induk_kode is not null then
+    -- Laporan gabungan: kurangi hitungan warga hanya jika laporan ini
+    -- dulu menambahnya (tercatat di tabel dukungan lewat laporan_kode).
+    delete from public.dukungan where laporan_kode = v_lap.kode;
+    get diagnostics v_kurang = row_count;
+    if v_kurang > 0 then
+      update public.laporan
+         set jumlah_dukungan = greatest(jumlah_dukungan - 1, 0)
+       where kode = v_lap.induk_kode;
+    end if;
+  end if;
   delete from public.laporan where kode = v_lap.kode or induk_kode = v_lap.kode;
   get diagnostics v_hapus = row_count;
-  if v_lap.induk_kode is not null then
-    update public.laporan
-       set jumlah_dukungan = greatest(jumlah_dukungan - 1, 0)
-     where kode = v_lap.induk_kode;
-  end if;
   return json_build_object('dihapus', v_hapus);
 end
 $$;
 
 -- Hanya fungsi publik di atas yang boleh dipanggil dari website.
-revoke all on function public.kirim_laporan(text,text,text[],text,text,double precision,double precision,text) from public;
+revoke all on function public.kirim_laporan(text,text,text[],text,text,double precision,double precision,text,text) from public;
 revoke all on function public.dukung(text,text)           from public;
 revoke all on function public.lacak(text)                 from public;
 revoke all on function public.cek_pin(text)               from public;
 revoke all on function public.perbarui_kasus(text,text,text,text,text) from public;
 revoke all on function public.hapus_laporan(text,text)    from public;
-grant execute on function public.kirim_laporan(text,text,text[],text,text,double precision,double precision,text) to anon, authenticated;
+grant execute on function public.kirim_laporan(text,text,text[],text,text,double precision,double precision,text,text) to anon, authenticated;
 grant execute on function public.dukung(text,text)        to anon, authenticated;
 grant execute on function public.lacak(text)              to anon, authenticated;
 grant execute on function public.cek_pin(text)            to anon, authenticated;
@@ -485,7 +551,7 @@ values
   ('PRJ-002', 'Pembangunan dan Penataan Lingkungan Puskesmas Leuwinanggung', 'Kesehatan', 2026, 'Tapos', 'Dinas Perumahan dan Permukiman', 'PT. Marzaqah Mutualisme Makmur Sentosa', 8367737802.0, 8367736185.74, 7600239000.0, null, null, 'Batas tanda tangan kontrak: 2 Juli 2026 (jadwal LPSE)', 'Berkontrak', 'APBD Kota Depok 2026', '10140106000', '65399521', 'LPSE Kota Depok (SPSE)', 'https://spse.inaproc.id/depok/lelang/10140106000/pengumumanlelang', -6.41064, 106.90845, 'kelurahan', 'Titik tengah Kel. Leuwinanggung'),
   ('PRJ-003', 'Pembangunan dan Penataan Lingkungan Kantor Kelurahan Meruyung', 'Kantor Pelayanan', 2026, 'Limo', 'Dinas Perumahan dan Permukiman', 'CV. Tetra D Jaya Mandiri', 7700000000.0, 7699965214.3, 7237861810.79, null, null, 'Batas tanda tangan kontrak: 9 Juli 2026 (jadwal LPSE)', 'Berkontrak', 'APBD Kota Depok 2026', '10140091000', '65377604', 'LPSE Kota Depok (SPSE)', 'https://spse.inaproc.id/depok/lelang/10140091000/pengumumanlelang', -6.38004, 106.76913, 'kelurahan', 'Titik tengah Kel. Meruyung'),
   ('PRJ-004', 'Pembangunan dan Penataan Lingkungan Rumah Kreatif Anak Istimewa', 'Sosial', 2026, 'Beji', 'Dinas Perumahan dan Permukiman', 'PT. Primerindo Multi Karya', 17752070000.0, 17752067500.8, 15706465616.64, null, null, 'Batas tanda tangan kontrak: 2 Juli 2026 (jadwal LPSE)', 'Berkontrak', 'APBD Kota Depok 2026', '10140028000', '65511529', 'LPSE Kota Depok (SPSE)', 'https://spse.inaproc.id/depok/lelang/10140028000/pengumumanlelang', -6.37258, 106.81839, 'kecamatan', 'Titik tengah Kec. Beji (alamat persis belum diketahui)'),
-  ('PRJ-005', 'Rehabilitasi dan Penataan Lingkungan RSUD KiSA', 'Kesehatan', 2026, 'Sawangan', 'Dinas Perumahan dan Permukiman', 'CV. Arsita Karya', 1850340000.0, 1850323251.96, 1545000000.0, null, null, 'Batas tanda tangan kontrak: 2 Juli 2026 (jadwal LPSE)', 'Berkontrak', 'APBD Kota Depok 2026', '10140109000', '65502119', 'LPSE Kota Depok (SPSE)', 'https://spse.inaproc.id/depok/lelang/10140109000/pengumumanlelang', -6.40403, 106.75824, 'titik', 'RSUD Kota Depok, Jl. Muchtar Raya, Sawangan (OpenStreetMap) — cek apakah sama dengan RSUD KiSA'),
+  ('PRJ-005', 'Rehabilitasi dan Penataan Lingkungan RSUD KiSA', 'Kesehatan', 2026, 'Sawangan', 'Dinas Perumahan dan Permukiman', 'CV. Arsita Karya', 1850340000.0, 1850323251.96, 1545000000.0, null, null, 'Batas tanda tangan kontrak: 2 Juli 2026 (jadwal LPSE)', 'Berkontrak', 'APBD Kota Depok 2026', '10140109000', '65502119', 'LPSE Kota Depok (SPSE)', 'https://spse.inaproc.id/depok/lelang/10140109000/pengumumanlelang', -6.40403, 106.75824, 'titik', 'RSUD KiSA (RSUD Kota Depok), Jl. Raya Muchtar No. 99, Sawangan (OpenStreetMap)'),
   ('PRJ-006', 'Pembangunan dan Penataan Lingkungan Depok Open Space Kawasan Balaikota Depok Tahap 3', 'Ruang Publik', 2026, 'Pancoran Mas', 'Dinas Perumahan dan Permukiman', 'CV. Jeselindo Jaya', 5721140000.0, 5706759881.44, 5300000000.0, null, null, 'Batas tanda tangan kontrak: 17 April 2026 (jadwal LPSE)', 'Berkontrak', 'APBD Kota Depok 2026', '10119997000', '65498056', 'LPSE Kota Depok (SPSE)', 'https://spse.inaproc.id/depok/lelang/10119997000/pengumumanlelang', -6.39351, 106.82119, 'titik', 'Balai Kota Depok, Jl. Margonda Raya (OpenStreetMap)'),
   ('PRJ-007', 'Pembangunan SDN Cinere 1', 'Pendidikan', 2026, 'Cinere', 'Dinas Pendidikan', 'PT Niscala Karya Konstruksi', 12058580453.0, 12048984000.0, null, null, null, 'Batas tanda tangan kontrak: 2 Juli 2026 (jadwal LPSE)', 'Pemenang ditetapkan, nilai kontrak belum tayang', 'APBD Kota Depok 2026', '10140154000', '64613535', 'LPSE Kota Depok (SPSE)', 'https://spse.inaproc.id/depok/lelang/10140154000/pengumumanlelang', -6.33251, 106.78925, 'kelurahan', 'Titik tengah Kel. Cinere'),
   ('PRJ-008', 'Pembangunan dan Penataan Lingkungan SMPN 3 (Sukmajaya)', 'Pendidikan', 2025, 'Sukmajaya', 'Dinas Perumahan dan Permukiman', 'PT. Nenci Citra Pratama', 28305035323.0, 28305032617.51, 26234815723.2, null, null, 'Batas tanda tangan kontrak: 4 Juni 2025 (jadwal LPSE)', 'Berkontrak', 'APBD Kota Depok 2025', '10022144000', '54494616', 'LPSE Kota Depok (SPSE)', 'https://spse.inaproc.id/depok/lelang/10022144000/pengumumanlelang', -6.38586, 106.84774, 'titik', 'SMP Negeri 3 Depok, Jl. Barito Raya (OpenStreetMap)'),
@@ -494,10 +560,10 @@ values
   ('PRJ-011', 'Pembangunan dan Penataan Lingkungan SDN Kedaung', 'Pendidikan', 2025, 'Sawangan', 'Dinas Perumahan dan Permukiman', 'PT. Marzaqah Mutualisme Makmur Sentosa', 7266766784.0, 7266766700.92, 6689689000.0, null, null, 'Batas tanda tangan kontrak: 4 Juni 2025 (jadwal LPSE)', 'Berkontrak', 'APBD Kota Depok 2025', '10023138000', '54494581', 'LPSE Kota Depok (SPSE)', 'https://spse.inaproc.id/depok/lelang/10023138000/pengumumanlelang', -6.36629, 106.74784, 'kelurahan', 'Titik tengah Kel. Kedaung'),
   ('PRJ-012', 'Pembangunan dan Penataan Lingkungan SMPN 25 (Lanjutan)', 'Pendidikan', 2025, 'Sawangan', 'Dinas Perumahan dan Permukiman', 'Primerindo Pratama', 10621409750.0, 10621405918.46, 9758181051.0, null, null, 'Batas tanda tangan kontrak: 4 Juni 2025 (jadwal LPSE)', 'Berkontrak', 'APBD Kota Depok 2025', '10023063000', '54494615', 'LPSE Kota Depok (SPSE)', 'https://spse.inaproc.id/depok/lelang/10023063000/pengumumanlelang', -6.40019, 106.76372, 'kecamatan', 'Titik tengah Kec. Sawangan (alamat persis belum diketahui)'),
   ('PRJ-013', 'Rehabilitasi dan Penataan Lingkungan Stadion Mahakam', 'Olahraga', 2025, 'Sukmajaya', 'Dinas Perumahan dan Permukiman', 'PT. Sedasa Sinergi Inovasi', 7000000000.0, 6999991750.56, 6433336063.64, null, null, 'Batas tanda tangan kontrak: 19 Agustus 2025 (jadwal LPSE)', 'Berkontrak', 'APBD Kota Depok 2025', '10054286000', '55133307', 'LPSE Kota Depok (SPSE)', 'https://spse.inaproc.id/depok/lelang/10054286000/pengumumanlelang', -6.38506, 106.84729, 'titik', 'Stadion Mahakam, Jl. Rasamala Raya (OpenStreetMap)'),
-  ('PRJ-014', 'Drainase Jl. Mawar 3 RW 004 Kel. Depok Jaya, Kec. Pancoran Mas', 'Drainase', 2025, 'Pancoran Mas', 'Dinas Perumahan dan Permukiman', 'CV. Martumbur Rezeki', 245470790.0, 245192700.0, 172661000.0, null, null, 'Batas tanda tangan kontrak: 24 Juli 2025 (jadwal LPSE)', 'Berkontrak', 'APBD Kota Depok 2025', '10025014000', '55183079', 'LPSE Kota Depok (SPSE)', 'https://spse.inaproc.id/depok/lelang/10025014000/pengumumanlelang', -6.38953, 106.81431, 'kelurahan', 'Titik tengah Kel. Depok Jaya — geser ke Jl. Mawar 3 setelah survei'),
-  ('PRJ-015', 'Drainase Jl. Kenanga 1 dan Jl. Kenanga 2 RW 005 Kel. Depok Jaya, Kec. Pancoran Mas', 'Drainase', 2025, 'Pancoran Mas', 'Dinas Perumahan dan Permukiman', 'CV. Abyakta Camani Cemerlang', 222108330.0, 221500000.0, 153000000.0, null, null, 'Batas tanda tangan kontrak: 24 Juli 2025 (jadwal LPSE)', 'Berkontrak', 'APBD Kota Depok 2025', '10024938000', '55183004', 'LPSE Kota Depok (SPSE)', 'https://spse.inaproc.id/depok/lelang/10024938000/pengumumanlelang', -6.38953, 106.81431, 'kelurahan', 'Titik tengah Kel. Depok Jaya — geser ke Jl. Kenanga setelah survei'),
-  ('PRJ-016', 'Drainase Jalan RW 013 Komplek Areman Baru Kel. Tugu, Kec. Cimanggis', 'Drainase', 2025, 'Cimanggis', 'Dinas Perumahan dan Permukiman', 'CV. Meriall Incosyaira', 546730240.0, 544155500.0, 367119022.38, null, null, 'Batas tanda tangan kontrak: 24 Juli 2025 (jadwal LPSE)', 'Berkontrak', 'APBD Kota Depok 2025', '10024850000', '55183115', 'LPSE Kota Depok (SPSE)', 'https://spse.inaproc.id/depok/lelang/10024850000/pengumumanlelang', -6.36971, 106.84886, 'kelurahan', 'Sekitar Kel. Tugu — geser ke Komplek Areman Baru setelah survei'),
-  ('PRJ-017', 'Drainase Perum Griya Telaga Permai RT 004 RW 019 Kel. Cilangkap, Kec. Tapos', 'Drainase', 2025, 'Tapos', 'Dinas Perumahan dan Permukiman', 'CV. Meriall Incosyaira', 240430960.0, 240204600.0, 164617659.78, null, null, 'Batas tanda tangan kontrak: 24 Juli 2025 (jadwal LPSE)', 'Berkontrak', 'APBD Kota Depok 2025', '10025049000', '55183008', 'LPSE Kota Depok (SPSE)', 'https://spse.inaproc.id/depok/lelang/10025049000/pengumumanlelang', -6.44516, 106.85695, 'kelurahan', 'Titik tengah Kel. Cilangkap — geser ke Perum Griya Telaga Permai setelah survei'),
+  ('PRJ-014', 'Drainase Jl. Mawar 3 RW 004 Kel. Depok Jaya, Kec. Pancoran Mas', 'Drainase', 2025, 'Pancoran Mas', 'Dinas Perumahan dan Permukiman', 'CV. Martumbur Rezeki', 245470790.0, 245192700.0, 172661000.0, null, null, 'Batas tanda tangan kontrak: 24 Juli 2025 (jadwal LPSE)', 'Berkontrak', 'APBD Kota Depok 2025', '10025014000', '55183079', 'LPSE Kota Depok (SPSE)', 'https://spse.inaproc.id/depok/lelang/10025014000/pengumumanlelang', -6.38953, 106.81431, 'kelurahan', 'Titik tengah Kel. Depok Jaya. Paket ada di Jl. Mawar 3 RW 004; titik persisnya belum dipetakan'),
+  ('PRJ-015', 'Drainase Jl. Kenanga 1 dan Jl. Kenanga 2 RW 005 Kel. Depok Jaya, Kec. Pancoran Mas', 'Drainase', 2025, 'Pancoran Mas', 'Dinas Perumahan dan Permukiman', 'CV. Abyakta Camani Cemerlang', 222108330.0, 221500000.0, 153000000.0, null, null, 'Batas tanda tangan kontrak: 24 Juli 2025 (jadwal LPSE)', 'Berkontrak', 'APBD Kota Depok 2025', '10024938000', '55183004', 'LPSE Kota Depok (SPSE)', 'https://spse.inaproc.id/depok/lelang/10024938000/pengumumanlelang', -6.38953, 106.81431, 'kelurahan', 'Titik tengah Kel. Depok Jaya. Paket ada di Jl. Kenanga 1 dan 2 RW 005; titik persisnya belum dipetakan'),
+  ('PRJ-016', 'Drainase Jalan RW 013 Komplek Areman Baru Kel. Tugu, Kec. Cimanggis', 'Drainase', 2025, 'Cimanggis', 'Dinas Perumahan dan Permukiman', 'CV. Meriall Incosyaira', 546730240.0, 544155500.0, 367119022.38, null, null, 'Batas tanda tangan kontrak: 24 Juli 2025 (jadwal LPSE)', 'Berkontrak', 'APBD Kota Depok 2025', '10024850000', '55183115', 'LPSE Kota Depok (SPSE)', 'https://spse.inaproc.id/depok/lelang/10024850000/pengumumanlelang', -6.36971, 106.84886, 'kelurahan', 'Sekitar Kel. Tugu. Paket ada di Komplek Areman Baru RW 013; titik persisnya belum dipetakan'),
+  ('PRJ-017', 'Drainase Perum Griya Telaga Permai RT 004 RW 019 Kel. Cilangkap, Kec. Tapos', 'Drainase', 2025, 'Tapos', 'Dinas Perumahan dan Permukiman', 'CV. Meriall Incosyaira', 240430960.0, 240204600.0, 164617659.78, null, null, 'Batas tanda tangan kontrak: 24 Juli 2025 (jadwal LPSE)', 'Berkontrak', 'APBD Kota Depok 2025', '10025049000', '55183008', 'LPSE Kota Depok (SPSE)', 'https://spse.inaproc.id/depok/lelang/10025049000/pengumumanlelang', -6.44516, 106.85695, 'kelurahan', 'Titik tengah Kel. Cilangkap. Paket ada di Perum Griya Telaga Permai RT 004 RW 019; titik persisnya belum dipetakan'),
   ('PRJ-018', 'Keperluan Mendesak Rehabilitasi SDN Mekarjaya 11', 'Pendidikan', 2025, 'Sukmajaya', 'Dinas Perumahan dan Permukiman', 'CV. Sejahtera Mandiri', 1653258000.0, 1653257858.22, 1445225000.0, null, null, 'Batas tanda tangan kontrak: 19 September 2025 (jadwal LPSE)', 'Berkontrak', 'APBD Kota Depok 2025', '10072337000', '58524715', 'LPSE Kota Depok (SPSE)', 'https://spse.inaproc.id/depok/lelang/10072337000/pengumumanlelang', -6.39674, 106.83923, 'kelurahan', 'Sekitar Kel. Mekar Jaya — titik persis sekolah belum diketahui'),
   ('PRJ-019', 'Pembangunan dan Penataan Lingkungan Kantor Kelurahan Tugu', 'Kantor Pelayanan', 2025, 'Cimanggis', 'Dinas Perumahan dan Permukiman', 'PT. Bumi Mandiri Berdikari', 7000000000.0, 6999999446.71, 6579999439.69, null, null, 'Batas tanda tangan kontrak: 4 Juni 2025 (jadwal LPSE)', 'Berkontrak', 'APBD Kota Depok 2025', '10023137000', '54494591', 'LPSE Kota Depok (SPSE)', 'https://spse.inaproc.id/depok/lelang/10023137000/pengumumanlelang', -6.37014, 106.84852, 'kelurahan', 'Sekitar Kel. Tugu — titik persis kantor kelurahan belum diketahui'),
   ('PRJ-020', 'Rehabilitasi dan Penataan Lingkungan SMPN 18', 'Pendidikan', 2025, 'Bojongsari', 'Dinas Perumahan dan Permukiman', 'Brilian Cemerlang', 1000000000.0, 999999326.01, 979020000.0, null, null, 'Batas tanda tangan kontrak: 4 Juni 2025 (jadwal LPSE)', 'Berkontrak', 'APBD Kota Depok 2025', '10023141000', '55133241', 'LPSE Kota Depok (SPSE)', 'https://spse.inaproc.id/depok/lelang/10023141000/pengumumanlelang', -6.39966, 106.74062, 'kecamatan', 'Titik tengah Kec. Bojongsari (alamat persis belum diketahui)'),
@@ -506,5 +572,21 @@ values
   ('PRJ-023', 'Perbaikan & pelebaran 2 m Jalan Raya Cipayung (depan Perum Green Pitara – Jembatan Serong)', 'Jalan', 2026, 'Cipayung', 'Dinas Pekerjaan Umum dan Penataan Ruang', null, 1700000000, null, 1700000000, '2026-07-09', '2026-10-06', '9 Juli – 6 Oktober 2026', 'Berjalan', 'APBD Kota Depok 2026', null, null, 'detikNews, 1 Sep 2026', 'https://news.detik.com/berita/d-8643123/perbaikan-jalan-raya-cipayung-depok-rampung-oktober-2026-anggaran-rp-1-7-m', -6.41347, 106.79826, 'jalan', 'Jalan Raya Cipayung ruas Rangkapan Jaya (OpenStreetMap)'),
   ('PRJ-024', 'Penataan Drainase Jalan Raya Sawangan (Segmen A 210,6 m + Segmen B 58,6 m)', 'Drainase', 2026, 'Pancoran Mas', 'Dinas Pekerjaan Umum dan Penataan Ruang', null, 1100000000, null, null, '2026-06-03', '2026-08-01', '3 Juni – 1 Agustus 2026 (60 hari kalender)', 'Berjalan', 'APBD Kota Depok 2026', null, null, 'JPNN Jabar, 22 Jun 2026', 'https://jabar.jpnn.com/jabar-terkini/31740/pupr-depok-gelontorkan-rp-11-miliar-untuk-penataan-drainase-jalan-raya-sawangan', -6.39499, 106.79874, 'jalan', 'Jalan Raya Sawangan, Kel. Mampang (OpenStreetMap)')
 on conflict (id) do nothing;
+
+-- ---------------------------------------------------------------------
+-- 6. PERBAIKAN DATA (aman dijalankan ulang)
+--    Mengganti catatan lokasi lama yang masih berupa catatan internal.
+--    Catatan yang sudah kalian ubah sendiri tidak disentuh.
+-- ---------------------------------------------------------------------
+update public.proyek set catatan_lokasi = 'RSUD KiSA (RSUD Kota Depok), Jl. Raya Muchtar No. 99, Sawangan (OpenStreetMap)', diperbarui_pada = now()
+ where id = 'PRJ-005' and catatan_lokasi like '%cek apakah sama dengan RSUD KiSA%';
+update public.proyek set catatan_lokasi = 'Titik tengah Kel. Depok Jaya. Paket ada di Jl. Mawar 3 RW 004; titik persisnya belum dipetakan', diperbarui_pada = now()
+ where id = 'PRJ-014' and catatan_lokasi like '%setelah survei%';
+update public.proyek set catatan_lokasi = 'Titik tengah Kel. Depok Jaya. Paket ada di Jl. Kenanga 1 dan 2 RW 005; titik persisnya belum dipetakan', diperbarui_pada = now()
+ where id = 'PRJ-015' and catatan_lokasi like '%setelah survei%';
+update public.proyek set catatan_lokasi = 'Sekitar Kel. Tugu. Paket ada di Komplek Areman Baru RW 013; titik persisnya belum dipetakan', diperbarui_pada = now()
+ where id = 'PRJ-016' and catatan_lokasi like '%setelah survei%';
+update public.proyek set catatan_lokasi = 'Titik tengah Kel. Cilangkap. Paket ada di Perum Griya Telaga Permai RT 004 RW 019; titik persisnya belum dipetakan', diperbarui_pada = now()
+ where id = 'PRJ-017' and catatan_lokasi like '%setelah survei%';
 
 -- Selesai. Cek: select count(*) from proyek;  -- hasilnya 24

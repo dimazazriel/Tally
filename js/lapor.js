@@ -9,7 +9,7 @@
   }
 
   let p = proyek.find((x) => x.id === param('id')) || null;
-  let fotoBlob = null, lokasi = null, petaLapor = null, lapisLapor = null;
+  let fotoBlob = null, fotoTerunggah = null, lokasi = null, janjiPeta = null, penandaProyek = null;
 
   try { if (localStorage.getItem('tally_kunci_tim')) $('#banner-tim').hidden = false; } catch (e) {}
 
@@ -58,9 +58,10 @@
       <p class="panel__judul">Sudah ada laporan untuk proyek ini</p>
       <p class="pudar" style="font-size:var(--t-s);margin-bottom:12px">Kalau kamu melihat hal yang sama, cukup dukung laporannya. Kalau tetap mengirim dengan kondisi yang sama, laporanmu otomatis digabung ke kasus itu.</p>
       ${terbuka.map((k) => `<div class="kasus" style="margin-top:8px">
-        <div class="kasus__kepala">${lencanaKondisi(k.kondisi)}<span class="pudar" style="font-size:var(--t-xs)">${1 + k.jumlahDukungan} warga · ${sejak(k.dibuatPada)}</span></div>
+        <div class="kasus__kepala">${lencanaKondisi(k.kondisi)}<span class="pudar" style="font-size:var(--t-xs)"><span data-hitung>${1 + k.jumlahDukungan} warga</span> · ${sejak(k.dibuatPada)}</span></div>
         <button class="tombol tombol--garis tombol--kecil" type="button" data-dukung="${esc(k.kode)}">${ikon('mata')}Saya juga lihat ini</button>
       </div>`).join('')}` : '';
+    tulisInfoLokasi();
     gambarPeta();
   }
 
@@ -71,31 +72,39 @@
     try {
       const r = await Data.dukung(b.dataset.dukung);
       b.removeAttribute('aria-busy');
-      b.innerHTML = `${ikon('centang')}${r.baru ? 'Dukungan tercatat' : 'Sudah kamu dukung'}`;
-      notif(r.baru ? 'Terima kasih. Kasus ini naik prioritas di antrean petugas.' : 'Perangkat ini sudah pernah mendukung kasus ini.');
+      b.innerHTML = `${ikon('centang')}${r.baru ? 'Dukungan tercatat' : 'Sudah tercatat dari perangkat ini'}`;
+      const hitung = b.closest('.kasus') && b.closest('.kasus').querySelector('[data-hitung]');
+      if (hitung) hitung.textContent = `${1 + r.jumlah_dukungan} warga`;
+      notif(r.baru ? 'Terima kasih. Kasus ini naik prioritas di antrean petugas.' : 'Perangkat ini sudah melaporkan atau mendukung kasus ini, jadi tidak dihitung dua kali.');
     } catch (err) {
       b.removeAttribute('aria-busy'); b.disabled = false;
       notif('Gagal: ' + err.message);
     }
   });
 
-  // Peta jarak
-  function gambarPeta() {
+  // Peta jarak: titik proyek, lingkaran radius cek GPS, dan posisimu
+  async function gambarPeta() {
     if (!p) return;
-    if (!petaLapor) {
-      petaLapor = L.map('peta-lapor', { scrollWheelZoom: false }).setView([p.lat, p.lng], 15);
-      lapisanPeta(petaLapor);
-      lapisLapor = L.layerGroup().addTo(petaLapor);
+    const proyekIni = p;
+    if (!janjiPeta) janjiPeta = PetaTally.buat($('#peta-lapor'), { pusat: proyekIni, zoom: 15, kooperatif: true });
+    let peta;
+    try {
+      peta = await janjiPeta;
+    } catch (e) {
+      PetaTally.tampilkanGagal($('#peta-lapor'), e);
+      return;
     }
-    lapisLapor.clearLayers();
+    if (proyekIni !== p) return;   // proyek sudah diganti saat peta dimuat
+    if (penandaProyek) penandaProyek.remove();
+    penandaProyek = PetaTally.pasangPenanda(peta, p, statusLapangan(laporan.filter((l) => l.proyekId === p.id)));
     const r = batasRadius(p);
-    L.marker([p.lat, p.lng], { icon: pinPeta({ kunci: 'belum' }, p.presisiLokasi), title: p.nama }).addTo(lapisLapor);
-    const lingkar = L.circle([p.lat, p.lng], { radius: r, color: '#4a2fa0', weight: 1.5, fillOpacity: 0.06, dashArray: '4 6' }).addTo(lapisLapor);
+    PetaTally.aturArea(peta, 'area-cek', PetaTally.lingkaran(p.lng, p.lat, r));
     if (lokasi) {
-      L.marker([lokasi.lat, lokasi.lng], { icon: L.divIcon({ className: '', html: '<span class="titik-saya"></span>', iconSize: [18, 18], iconAnchor: [9, 9] }), title: 'Posisimu' }).addTo(lapisLapor);
-      petaLapor.fitBounds(L.latLngBounds([[p.lat, p.lng], [lokasi.lat, lokasi.lng]]).pad(0.35));
+      PetaTally.tandaiSaya(peta, lokasi);
+      const b = PetaTally.batasLingkaran(p, r).extend([lokasi.lng, lokasi.lat]);
+      peta.fitBounds(b, { padding: 36, maxZoom: 16, duration: 0 });
     } else {
-      petaLapor.fitBounds(lingkar.getBounds().pad(0.2));
+      peta.fitBounds(PetaTally.batasLingkaran(p, r), { padding: 24, duration: 0 });
     }
   }
 
@@ -107,6 +116,7 @@
     if (!file.type.startsWith('image/')) return galat('#galat-foto', 'File itu bukan foto. Pilih file JPG, PNG, atau WEBP.');
     try {
       fotoBlob = await kompresFoto(file);
+      fotoTerunggah = null;
       $('#pratinjau-img').src = URL.createObjectURL(fotoBlob);
       $('#pratinjau').hidden = false;
       $('#zona-foto').hidden = true;
@@ -121,7 +131,15 @@
   ['dragleave', 'drop'].forEach((ev) => zona.addEventListener(ev, () => zona.classList.remove('seret')));
   zona.addEventListener('drop', (e) => { e.preventDefault(); terimaFoto(e.dataTransfer.files[0]); });
 
-  // Lokasi: cek radius
+  // Lokasi: cek radius (ditulis ulang setiap kali proyek atau lokasi berubah)
+  function tulisInfoLokasi() {
+    if (!lokasi || !p) return;
+    const jarak = Math.round(jarakMeter(lokasi, p)), batas = batasRadius(p);
+    $('#info-lokasi').innerHTML = jarak <= batas
+      ? `<span class="lencana lencana--cocok">${ikon('centang')}Lolos cek GPS</span> Kamu ${jarakTeks(jarak)} dari titik proyek (batas ${batas} m).`
+      : `<span class="lencana lencana--cek">${ikon('peringatan')}Di luar radius</span> Kamu ${jarakTeks(jarak)} dari titik proyek (batas ${batas} m). Laporan tetap bisa dikirim.`;
+  }
+
   $('#ambil-lokasi').addEventListener('click', () => {
     const info = $('#info-lokasi'), tombol = $('#ambil-lokasi');
     if (!p) { info.textContent = 'Pilih proyeknya dulu.'; return; }
@@ -131,11 +149,8 @@
     info.textContent = 'Mencari lokasimu…';
     navigator.geolocation.getCurrentPosition((pos) => {
       tombol.removeAttribute('aria-busy');
-      lokasi = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-      const jarak = Math.round(jarakMeter(lokasi, p)), batas = batasRadius(p);
-      info.innerHTML = jarak <= batas
-        ? `<span class="lencana lencana--cocok">${ikon('centang')}Lolos cek GPS</span> Kamu ${jarakTeks(jarak)} dari titik proyek (batas ${batas} m).`
-        : `<span class="lencana lencana--cek">${ikon('peringatan')}Di luar radius</span> Kamu ${jarakTeks(jarak)} dari titik proyek (batas ${batas} m). Laporan tetap bisa dikirim.`;
+      lokasi = { lat: pos.coords.latitude, lng: pos.coords.longitude, akurasi: pos.coords.accuracy };
+      tulisInfoLokasi();
       gambarPeta();
     }, (err) => {
       tombol.removeAttribute('aria-busy');
@@ -170,7 +185,9 @@
     const tombol = $('#tombol-kirim');
     tombol.setAttribute('aria-busy', 'true'); tombol.disabled = true;
     try {
-      const fotoPath = await Data.unggahFoto(fotoBlob, 'laporan');
+      // Kalau pengiriman sebelumnya gagal setelah foto terunggah, foto itu dipakai lagi
+      if (!fotoTerunggah) fotoTerunggah = await Data.unggahFoto(fotoBlob, 'laporan');
+      const fotoPath = fotoTerunggah;
       const hasil = await Data.kirimLaporan({
         proyekId: p.id, kondisi,
         temuan: $$('input[name="temuan"]:checked').map((x) => x.value),

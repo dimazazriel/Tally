@@ -23,4 +23,12 @@
     return `<figure><div style="background:${hex}"></div><figcaption><b>${nama}</b><code>${hex}</code><span class="pudar">${peran}</span><span>${info}</span></figcaption></figure>`;
   }).join('');
   $('#contoh-lencana').innerHTML = [lencanaKondisi('Sesuai'), lencanaKondisi('Terbengkalai'), lencanaStatus('Diterima'), lencanaStatus('Diverifikasi'), lencanaStatus('Selesai'), lencanaStatus('Ditolak'), '<span class="chip">PRJ-014</span>'].join('');
+  // Contoh penanda peta, digambar dengan fungsi yang sama dengan peta sungguhan
+  if (typeof PetaTally !== 'undefined') {
+    $$('#contoh-penanda [data-penanda]').forEach((el) => {
+      const kunci = el.dataset.penanda, kira = el.hasAttribute('data-kira');
+      el.className = `penanda penanda--${kunci}${kira ? ' penanda--kira' : ''}${el.hasAttribute('data-aktif') ? ' penanda--aktif' : ''}`;
+      el.innerHTML = `<span class="penanda__badan">${PetaTally.svgPenanda(kunci, kira)}</span>`;
+    });
+  }
 })();

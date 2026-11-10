@@ -96,6 +96,7 @@ const Data = (() => {
       }
       mode = 'cadangan';
       const res = await fetch('data/proyek.json');
+      if (!res.ok) throw new Error('Data proyek tidak bisa dimuat (HTTP ' + res.status + ')');
       cacheProyek = await res.json();
       return mode;
     })();
@@ -116,6 +117,16 @@ const Data = (() => {
     do { k = 'TLY-' + Array.from({ length: 4 }, () => abjad[Math.floor(Math.random() * abjad.length)]).join(''); } while (ada.has(k));
     return k;
   }
+
+  // Perubahan status yang diizinkan (sama dengan fungsi perbarui_kasus di database)
+  const ALUR_BOLEH = {
+    'Diterima': ['Diverifikasi', 'Ditolak'],
+    'Diverifikasi': ['Diteruskan ke dinas', 'Ditolak'],
+    'Diteruskan ke dinas': ['Ditindaklanjuti'],
+    'Ditindaklanjuti': ['Selesai'],
+    'Selesai': ['Ditindaklanjuti'],
+    'Ditolak': ['Diterima']
+  };
 
   // ---------- API publik untuk halaman ----------
   async function proyek() { await siap(); return cacheProyek; }
@@ -152,10 +163,18 @@ const Data = (() => {
     await siap();
     const kunciTim = (() => { try { return localStorage.getItem('tally_kunci_tim'); } catch (e) { return null; } })();
     if (mode === 'online') {
-      return rpc('kirim_laporan', {
+      const args = {
         p_proyek_id: proyekId, p_kondisi: kondisi, p_temuan: temuan, p_catatan: catatan || null,
-        p_foto_path: fotoPath, p_lat: lat, p_lng: lng, p_kunci_tim: kunciTim
-      });
+        p_foto_path: fotoPath, p_lat: lat, p_lng: lng, p_kunci_tim: kunciTim, p_perangkat_id: perangkatId()
+      };
+      try {
+        return await rpc('kirim_laporan', args);
+      } catch (e) {
+        // Database belum memakai schema.sql terbaru (fungsi lama tanpa p_perangkat_id): kirim ulang tanpa ID perangkat
+        if (e.kode !== 'PGRST202') throw e;
+        delete args.p_perangkat_id;
+        return rpc('kirim_laporan', args);
+      }
     }
     // --- mode cadangan: tiru logika fungsi kirim_laporan di database ---
     const p = cacheProyek.find((x) => x.id === proyekId);
@@ -176,7 +195,17 @@ const Data = (() => {
       terverifikasi: verif, status: induk ? induk.status : 'Diterima', induk_kode: induk ? induk.kode : null,
       jumlah_dukungan: 0, sumber: 'publik', tanggapan: null, foto_sesudah_path: null, dibuat_pada: kini, diperbarui_pada: kini
     });
-    if (induk) semua.find((l) => l.kode === induk.kode).jumlah_dukungan += 1;
+    // Sama seperti database: hitungan warga hanya naik untuk perangkat baru
+    const d = baca(DK), saya = perangkatId();
+    if (induk) {
+      if (!d.some((x) => x.kode === induk.kode && x.perangkat === saya)) {
+        d.push({ kode: induk.kode, perangkat: saya, laporan: kode });
+        semua.find((l) => l.kode === induk.kode).jumlah_dukungan += 1;
+      }
+    } else {
+      d.push({ kode, perangkat: saya });
+    }
+    tulis(DK, d);
     tulis(LK, semua);
     const r = baca(RK);
     r.push({ kode, status: 'Diterima', catatan: induk ? 'Digabung ke kasus ' + induk.kode : 'Laporan masuk', waktu: kini });
@@ -191,6 +220,7 @@ const Data = (() => {
     const l = semua.find((x) => x.kode === kode);
     if (!l) throw new Error('Kode tidak ditemukan');
     const kasus = l.induk_kode || l.kode;
+    if (statusTutup((semua.find((x) => x.kode === kasus) || l).status)) throw new Error('Kasus ' + kasus + ' sudah ditutup');
     const d = baca(DK);
     const baru = !d.some((x) => x.kode === kasus && x.perangkat === perangkatId());
     if (baru) {
@@ -240,6 +270,9 @@ const Data = (() => {
     const l = semua.find((x) => x.kode === kode);
     if (!l) throw new Error('Kode tidak ditemukan');
     const kasus = l.induk_kode || l.kode;
+    const lama = (semua.find((x) => x.kode === kasus) || l).status;
+    if (!(ALUR_BOLEH[lama] || []).includes(status)) throw new Error(`Status kasus tidak bisa diubah dari "${lama}" ke "${status}"`);
+    if (statusTutup(status) && !(catatan || '').trim()) throw new Error('Catatan untuk pelapor wajib diisi saat menutup atau menolak kasus');
     const kini = new Date().toISOString();
     semua.filter((x) => x.kode === kasus || x.induk_kode === kasus).forEach((x) => {
       x.status = status;

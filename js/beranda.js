@@ -31,12 +31,17 @@
     [proyek, laporan] = await Promise.all([Data.proyek(), Data.laporan()]);
   } catch (e) {
     console.error(e);
+    const pesan = `<p class="galat">${ikon('peringatan')}Data proyek gagal dimuat: ${esc(e.message)}. Muat ulang halaman.</p>`;
+    $('#misi').innerHTML = pesan;
+    $('#galeri').innerHTML = '';
+    ['#nota-proyek', '#nota-laporan', '#nota-tindak'].forEach((s) => ($(s).textContent = '—'));
+    return;
   }
   const kasus = kelompokkanKasus(laporan.filter((l) => l.status !== 'Ditolak'));
   const kasusMasalah = kasus.filter((k) => kondisiMasalah(k.kondisi));
   const ditindak = kasusMasalah.filter((k) => ['Ditindaklanjuti', 'Selesai'].includes(k.status));
   $('#nota-proyek').textContent = proyek.length;
-  $('#nota-laporan').textContent = angka(laporan.length);
+  $('#nota-laporan').textContent = angka(laporan.filter((l) => l.status !== 'Ditolak').length);
   $('#nota-tindak').textContent = kasusMasalah.length ? `${ditindak.length}/${kasusMasalah.length}` : '0';
 
   // 3. Proyek yang perlu dicek: urutkan berdasarkan bobot sinyal

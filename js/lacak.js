@@ -67,7 +67,7 @@
             : ditolak ? '<span class="stempel stempel--tidak stempel--hentak" style="position:absolute;right:-6px;bottom:70px">Ditolak<small>lihat catatan</small></span>' : ''}
         </div>
         <div class="tumpuk">
-          ${lap.indukKode ? `<p class="sinyal sinyal--info">${ikon('warga')}<span>Laporanmu digabung ke kasus <b>${esc(lap.indukKode)}</b> bersama ${h.anggota} laporan lain dan ${Math.max(0, kasus.jumlahDukungan - h.anggota)} dukungan warga. Status di bawah adalah status kasus itu.</span></p>`
+          ${lap.indukKode ? `<p class="sinyal sinyal--info">${ikon('warga')}<span>Laporanmu digabung ke kasus <b>${esc(lap.indukKode)}</b>. Sejauh ini ${1 + kasus.jumlahDukungan} warga melaporkan atau mendukung kasus itu. Status di bawah adalah status kasusnya.</span></p>`
             : (kasus.jumlahDukungan ? `<p class="sinyal sinyal--info">${ikon('warga')}<span>${kasus.jumlahDukungan} warga lain ikut menguatkan kasus ini.</span></p>` : '')}
           <div class="panel">
             <p class="panel__judul">Batas tanggapan</p>
