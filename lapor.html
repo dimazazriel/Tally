@@ -68,27 +68,45 @@
           </fieldset>
 
           <fieldset class="langkah">
-            <legend><b>3</b>Foto bukti</legend>
-            <label class="unggah" id="zona-foto">
-              <svg aria-hidden="true"><use href="#i-kamera"></use></svg>
-              <b>Ambil foto atau pilih dari galeri</b>
-              <span class="bantuan">JPG, PNG, atau WEBP. Foto dikecilkan otomatis sebelum dikirim.</span>
-              <input type="file" id="foto" accept="image/*" capture="environment" aria-describedby="galat-foto">
-            </label>
+            <legend><b>3</b>Foto bukti <small>langsung dari kamera</small></legend>
+            <div class="kamera" id="kamera">
+              <div class="kamera__layar" id="kamera-layar" hidden>
+                <video id="kamera-video" playsinline muted autoplay aria-label="Pratinjau kamera"></video>
+                <span class="kamera__bidik" aria-hidden="true"></span>
+                <p class="kamera__info" id="kamera-info" aria-live="polite">Mencari lokasi…</p>
+              </div>
+              <div class="baris">
+                <button type="button" class="tombol" id="buka-kamera"><svg aria-hidden="true"><use href="#i-kamera"></use></svg>Buka kamera</button>
+                <button type="button" class="tombol tombol--besar" id="jepret" hidden><svg aria-hidden="true"><use href="#i-kamera"></use></svg>Ambil foto</button>
+                <button type="button" class="tombol tombol--garis" id="tutup-kamera" hidden>Batal</button>
+              </div>
+            </div>
             <div class="pratinjau" id="pratinjau" hidden>
               <img id="pratinjau-img" alt="Pratinjau foto bukti">
-              <button type="button" class="tombol tombol--garis tombol--kecil" id="ganti-foto" style="background:#fff">Ganti foto</button>
+              <button type="button" class="tombol tombol--garis tombol--kecil" id="ganti-foto" style="background:#fff">Foto ulang</button>
+            </div>
+            <p class="bantuan">Foto diambil langsung dari kamera di halaman ini, bukan dari galeri. Lokasimu dicatat pada detik memotret, lalu foto diberi cap waktu dan jarak ke proyek.</p>
+            <div id="cadangan-galeri" class="tumpuk" hidden>
+              <p class="sinyal" id="alasan-galeri"><svg aria-hidden="true"><use href="#i-peringatan"></use></svg><span></span></p>
+              <label class="unggah" id="zona-foto">
+                <svg aria-hidden="true"><use href="#i-unggah"></use></svg>
+                <b>Unggah foto dari galeri</b>
+                <span class="bantuan">Laporan tetap masuk, tetapi tidak mendapat tanda terverifikasi.</span>
+                <input type="file" id="foto" accept="image/*" aria-describedby="galat-foto">
+              </label>
             </div>
             <p class="bantuan">Foto dari tempat umum. Hindari wajah orang dan pelat nomor kendaraan.</p>
             <p class="galat" id="galat-foto" hidden></p>
           </fieldset>
 
           <fieldset class="langkah">
-            <legend><b>4</b>Cek lokasi <small>disarankan</small></legend>
+            <legend><b>4</b>Cek bukti</legend>
             <div class="baris">
-              <button type="button" class="tombol tombol--garis" id="ambil-lokasi"><svg aria-hidden="true"><use href="#i-lokasi"></use></svg>Ambil lokasi saya</button>
-              <span id="info-lokasi" class="bantuan" aria-live="polite">Laporan tanpa lokasi tetap diterima, tetapi tidak mendapat tanda "lolos cek GPS".</span>
+              <button type="button" class="tombol tombol--garis" id="ambil-lokasi" hidden><svg aria-hidden="true"><use href="#i-lokasi"></use></svg>Ambil lokasi saya</button>
+              <span id="info-lokasi" class="bantuan" aria-live="polite">Lokasi diambil otomatis pada detik kamu menekan "Ambil foto".</span>
             </div>
+            <ul class="syarat" id="syarat-bukti" aria-label="Syarat laporan terverifikasi"></ul>
+            <p id="ringkas-syarat" class="bantuan" aria-live="polite"></p>
             <div class="peta-mini" id="peta-lapor" style="height:240px" role="region" aria-label="Peta jarak kamu ke proyek"></div>
           </fieldset>
 

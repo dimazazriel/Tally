@@ -16,7 +16,7 @@ Tally mencocokkan anggaran proyek Pemkot Depok (data LPSE dan CaLK) dengan foto 
 | "Proyek yang paling perlu dicek", dipilih otomatis dari sinyal data | Beranda |
 | Peta 24 proyek: warna = status lapangan, bentuk = ketepatan lokasi; kompas yang bisa diputar, titik "lokasiku", urutan "terdekat dari lokasiku" | Peta proyek |
 | Struk proyek vs laporan warga dengan stempel status, sinyal kontrak < 80% HPS, peta radius cek GPS | Struk proyek |
-| Lapor: kondisi, temuan, foto (dikompres), cek GPS 300/1.500 m, tanpa nama dan NIK | Lapor |
+| Lapor: kondisi, temuan, foto langsung dari kamera dengan cap waktu, lokasi saat memotret, cek bukti (foto langsung + akurasi GPS ≤ 100 m + radius 300/1.500 m), tanpa nama dan NIK | Lapor |
 | Laporan ganda digabung menjadi satu kasus; hitungan warga sekali per perangkat, baik lewat "Saya juga lihat ini" maupun laporan lengkap | Struk proyek, Lapor |
 | Lacak ala resi: linimasa status, batas 7 hari, foto sebelum/sesudah, tanggapan petugas | Lacak |
 | Panel petugas (PIN demo): bukti foto dan jarak GPS, verifikasi, teruskan, tolak, selesaikan | Panel petugas |
@@ -75,7 +75,7 @@ flowchart LR
 | Tabel | Isi | Akses publik |
 |---|---|---|
 | `proyek` | 24 paket resmi: pagu, HPS, kontrak, penyedia, dinas, koordinat, presisi lokasi | baca |
-| `laporan` | kondisi, temuan, foto, jarak GPS, status, `induk_kode` (gabungan laporan ganda), jumlah dukungan | baca |
+| `laporan` | kondisi, temuan, foto, `foto_langsung`, jarak dan akurasi GPS, `terverifikasi`, status, `induk_kode` (gabungan laporan ganda), jumlah dukungan | baca |
 | `riwayat` | setiap perubahan status dan catatan petugas | baca |
 | `dukungan` | "Saya juga lihat ini", unik per kasus per perangkat | tidak ada |
 | `pengaturan` | hash PIN petugas dan admin | tidak ada |
@@ -117,7 +117,7 @@ assets/                logo, favicon, huruf, MapLibre
 - [x] Beranda: Struk Kota, meter anggaran, proyek yang perlu dicek, laporan terbaru
 - [x] Peta 24 proyek dengan status lapangan, saringan, dan urutan
 - [x] Struk proyek vs kata warga dengan stempel dan sinyal data
-- [x] Formulir lapor dengan foto, cek GPS, dan penggabungan laporan ganda
+- [x] Formulir lapor dengan kamera langsung, cek bukti (foto + GPS + radius), batas jumlah laporan, dan penggabungan laporan ganda
 - [x] "Saya juga lihat ini" dan model kasus
 - [x] Lacak dengan batas 7 hari dan foto sebelum/sesudah
 - [x] Panel petugas berbasis PIN, papan skor per dinas/kecamatan/penyedia

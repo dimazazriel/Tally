@@ -103,8 +103,14 @@
           </ul>
           <h3>Kasus dan laporan ganda</h3>
           <p>Laporan pertama untuk satu proyek dengan kondisi tertentu membuka <b>kasus</b>. Laporan berikutnya dengan kondisi yang sama digabung ke kasus itu, dan tombol <b>Saya juga lihat ini</b> menambah dukungan tanpa membuat tiket baru (satu kali per perangkat). Status yang diubah petugas berlaku untuk seluruh kasus, jadi semua pelapornya melihat kemajuan yang sama. Antrean petugas diurutkan dari kasus dengan dukungan terbanyak.</p>
-          <h3>Cek lokasi (GPS)</h3>
-          <p>Jarak pelapor ke titik proyek dihitung dengan rumus haversine di database. Batasnya 300 m untuk proyek yang titiknya presisi (bangunan atau ruas jalan) dan 1.500 m untuk proyek yang titiknya masih perkiraan (titik tengah kelurahan atau kecamatan). Koordinat pelapor tidak disimpan, hanya jarak dan hasil ceknya.</p>
+          <h3>Cek bukti: kapan laporan terverifikasi</h3>
+          <p>Laporan diberi tanda <b>terverifikasi</b> hanya kalau tiga syarat terpenuhi, dan ketiganya dihitung ulang di database, bukan di browser:</p>
+          <ol>
+            <li><b>Foto langsung.</b> Foto dijepret dari kamera di halaman Tally, bukan dipilih dari galeri. Setiap foto diberi cap: asal foto, kode proyek, waktu, jarak ke proyek, dan akurasi GPS.</li>
+            <li><b>Lokasi saat memotret.</b> Lokasi diambil pada detik tombol potret ditekan, dengan akurasi GPS paling kasar 100 m. Lokasi dari jaringan (biasanya di laptop) sering lebih kasar dari itu.</li>
+            <li><b>Di dalam radius proyek.</b> Jarak ke titik proyek dihitung dengan rumus haversine: batasnya 300 m untuk proyek yang titiknya presisi (bangunan atau ruas jalan) dan 1.500 m untuk proyek yang titiknya masih perkiraan (titik tengah kelurahan atau kecamatan).</li>
+          </ol>
+          <p>Laporan yang tidak memenuhi syarat tetap diterima dan alasannya ditampilkan, misalnya "foto dari galeri" atau "di luar radius", supaya petugas tahu bukti mana yang perlu dicek ulang. Database juga membatasi jumlah laporan: paling banyak 10 laporan per proyek dan 60 laporan seluruhnya dalam 10 menit, untuk meredam banjir laporan dari bot. Koordinat pelapor tidak disimpan dan tidak ditulis di foto; yang disimpan hanya jarak, akurasi, dan hasil ceknya.</p>
           <h3>Sinyal "perlu dicek"</h3>
           <ul>
             <li><b>Kontrak di bawah 80% HPS.</b> Aturan pengadaan memberi perhatian khusus pada penawaran di bawah 80% dari Harga Perkiraan Sendiri dan meminta evaluasi kewajaran harganya, karena berisiko pada mutu atau keterlambatan. Empat paket drainase 2025 di data ini dikontrak 67,5–70,4% dari HPS. (<a href="https://inspektorat.medan.go.id/storage/berita/SE%20LKPP%204%202022%20Ped%20Pelaksanaan%20Tertib%20Evaluasi%20Kewajaran%20Harga%20pada%20Tender.pdf" target="_blank" rel="noopener">SE LKPP 4/2022</a>; <a href="https://simantu.pu.go.id/personal/img-post/195812091986031002/post/20210222201533__F__PENAWARAN_PENYEDIA_DI_BAWAH_80_HPS.pdf" target="_blank" rel="noopener">Ditjen Bina Konstruksi PUPR</a>)</li>
