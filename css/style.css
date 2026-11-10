@@ -332,6 +332,25 @@ textarea.kotak { min-height: 110px; resize: vertical; line-height: 1.5; }
 .pratinjau img { width: 100%; max-height: 360px; object-fit: contain; }
 .pratinjau .tombol { position: absolute; right: 10px; top: 10px; }
 
+/* Kamera langsung di formulir lapor */
+.kamera { display: grid; gap: var(--j3); }
+.kamera__layar { position: relative; border-radius: var(--r-panel); overflow: hidden; background: #111226; min-height: 220px; }
+.kamera__layar video { display: block; width: 100%; max-height: 62vh; object-fit: contain; }
+.kamera__bidik { position: absolute; inset: 14px 14px 64px; border: 2px solid rgba(255,255,255,.5); border-radius: 10px; pointer-events: none; }
+.kamera__info {
+  position: absolute; left: 10px; right: 10px; bottom: 10px; margin: 0; padding: 8px 12px;
+  border-radius: var(--r-kecil); background: rgba(27,27,58,.82); color: #fff;
+  font: 600 var(--t-xs)/1.4 var(--huruf-struk);
+}
+
+/* Daftar syarat laporan terverifikasi */
+.syarat { list-style: none; margin: var(--j3) 0 var(--j2); padding: 0; display: grid; gap: 6px; }
+.syarat__butir { display: flex; gap: 8px; align-items: flex-start; font-size: var(--t-s); }
+.syarat__butir svg { width: 18px; height: 18px; flex: none; margin-top: 1px; }
+.syarat__butir--ok { color: var(--cocok); }
+.syarat__butir--gagal { color: var(--tidak); }
+.syarat__butir--tunggu { color: var(--tinta-pudar); }
+
 /* ---------- Meter (anggaran vs realisasi, % selesai) ---------- */
 .meter { display: grid; gap: 6px; }
 .meter__kepala { display: flex; justify-content: space-between; gap: var(--j3); font-size: var(--t-s); }
