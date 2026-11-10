@@ -14,20 +14,21 @@ Tally mencocokkan anggaran proyek Pemkot Depok (data LPSE dan CaLK) dengan foto 
 |---|---|
 | Struk Belanja Kota (realisasi APBD 2025) dan meter anggaran vs realisasi | Beranda |
 | "Proyek yang paling perlu dicek", dipilih otomatis dari sinyal data | Beranda |
-| Peta 24 proyek: warna = status lapangan, bentuk = ketepatan lokasi; kompas yang bisa diputar, titik "lokasiku", urutan "terdekat dari lokasiku" | Peta proyek |
+| Peta 24 proyek: warna = status lapangan, bentuk = ketepatan lokasi; pencarian dengan saran yang tahan salah ketik, panel kiri yang bisa dilipat, tautan rute Google Maps, titik "lokasiku", urutan "terdekat dari lokasiku" | Peta proyek |
 | Struk proyek vs laporan warga dengan stempel status, sinyal kontrak < 80% HPS, peta radius cek GPS | Struk proyek |
 | Lapor: kondisi, temuan, foto langsung dari kamera dengan cap waktu, lokasi saat memotret, cek bukti (foto langsung + akurasi GPS ≤ 100 m + radius 300/1.500 m), tanpa nama dan NIK | Lapor |
 | Laporan ganda digabung menjadi satu kasus; hitungan warga sekali per perangkat, baik lewat "Saya juga lihat ini" maupun laporan lengkap | Struk proyek, Lapor |
 | Lacak ala resi: linimasa status, batas 7 hari, foto sebelum/sesudah, tanggapan petugas | Lacak |
 | Panel petugas (PIN demo): bukti foto dan jarak GPS, verifikasi, teruskan, tolak, selesaikan | Panel petugas |
 | Papan skor per dinas, kecamatan, dan penyedia (dihitung per kasus) | Papan skor |
+| Jejak perubahan publik: setiap perubahan, penghapusan (wajib beralasan), dan suntingan langsung di database tercatat otomatis oleh trigger dan tidak bisa dihapus | Jejak perubahan |
 | Latar belakang berdata, metode, privasi; panduan juri; sistem desain | Tentang, Panduan, Sistem desain |
 | Database bersama + mode cadangan otomatis bila database tidak terjangkau | Semua |
 
 ## Tech stack
 
 - **Frontend:** HTML, CSS (sistem desain sendiri, tanpa framework), JavaScript murni
-- **Database:** [Supabase](https://supabase.com) — PostgreSQL dengan Row Level Security, 6 fungsi RPC, Storage untuk foto
+- **Database:** [Supabase](https://supabase.com) — PostgreSQL dengan Row Level Security, 6 fungsi RPC, trigger jejak perubahan, Storage untuk foto
 - **Peta:** MapLibre GL JS 5.24 (di-host sendiri) + peta dasar [OpenFreeMap](https://openfreemap.org) gaya Positron yang diredam (data © OpenStreetMap), cadangan [VersaTiles](https://versatiles.org). Tanpa kunci API.
 - **Huruf:** Plus Jakarta Sans dan IBM Plex Mono (SIL OFL, di-host sendiri)
 - **Hosting:** Vercel
@@ -47,7 +48,7 @@ Website langsung memakai database Tally di Supabase. Untuk mencoba tanpa databas
 ### Memakai database sendiri
 
 1. Buat project di Supabase (Data API aktif).
-2. Buka **SQL Editor**, tempel seluruh `supabase/schema.sql`, lalu **Run**. Isinya: 5 tabel, RLS, 6 fungsi, bucket foto, 24 proyek, dan PIN demo petugas `404404`.
+2. Buka **SQL Editor**, tempel seluruh `supabase/schema.sql`, lalu **Run**. Isinya: 6 tabel, RLS, 6 fungsi, trigger jejak perubahan, bucket foto, 24 proyek, dan PIN demo petugas `404404`.
 3. Atur PIN admin tim lewat SQL Editor (jangan disimpan di repo):
    ```sql
    insert into public.pengaturan (kunci, nilai)
@@ -78,9 +79,10 @@ flowchart LR
 | `laporan` | kondisi, temuan, foto, `foto_langsung`, jarak dan akurasi GPS, `terverifikasi`, status, `induk_kode` (gabungan laporan ganda), jumlah dukungan | baca |
 | `riwayat` | setiap perubahan status dan catatan petugas | baca |
 | `dukungan` | "Saya juga lihat ini", unik per kasus per perangkat | tidak ada |
+| `jejak` | catatan otomatis setiap perubahan, penghapusan, dan data yang dimasukkan langsung ke `laporan` dan `proyek`: kolom lama → baru, jalur (petugas, admin, dasbor database, skrip), alasan; tidak bisa diubah atau dihapus | baca |
 | `pengaturan` | hash PIN petugas dan admin | tidak ada |
 
-Semua penulisan lewat fungsi yang memeriksa isinya: `kirim_laporan`, `dukung`, `lacak`, `cek_pin`, `perbarui_kasus`, `hapus_laporan`. Lokasi pelapor tidak disimpan; database hanya menyimpan jaraknya ke titik proyek.
+Semua penulisan lewat fungsi yang memeriksa isinya: `kirim_laporan`, `dukung`, `lacak`, `cek_pin`, `perbarui_kasus`, `hapus_laporan` (wajib alasan). Trigger `catat_jejak` mencatat setiap perubahan ke tabel `jejak`, termasuk yang dilakukan langsung lewat dasbor Supabase. Lokasi pelapor tidak disimpan; database hanya menyimpan jaraknya ke titik proyek.
 
 ## Sitemap
 
@@ -89,23 +91,25 @@ flowchart TD
   B[Beranda] --> P[Peta proyek] --> D[Struk proyek] --> L[Lapor] --> K[Lacak]
   D --> K
   B --> S[Papan skor]
+  S --> J[Jejak perubahan]
   B --> T[Tentang & metode]
   B --> G[Panduan juri & API]
   G --> Y[Sistem desain]
   G --> X[Panel petugas - demo]
+  X --> J
 ```
 
 ## Struktur folder
 
 ```
-index.html, peta.html, detail.html, lapor.html, lacak.html,
-skor.html, petugas.html, tentang.html, panduan.html, desain.html, 404.html
+index.html, peta.html, detail.html, lapor.html, lacak.html, skor.html,
+jejak.html, petugas.html, tentang.html, panduan.html, desain.html, 404.html
 css/style.css          sistem desain "struk & stempel" (token di :root)
 js/config.js           alamat database + publishable key + tautan pendukung
 js/data.js             satu pintu data: Supabase atau mode cadangan
 js/util.js             format angka, logika kasus, stempel, sinyal, SLA
 js/layout.js           ikon, filter tinta stempel, status database
-js/peta-dasar.js       peta MapLibre: gaya peta, penanda, kompas, lokasiku
+js/peta-dasar.js       peta MapLibre: gaya peta, penanda, kontrol, lokasiku
 js/<halaman>.js        skrip tiap halaman
 data/                  proyek.json, apbd.json, data mentah LPSE, SUMBER-DATA.md
 supabase/schema.sql    skema database lengkap
@@ -121,6 +125,7 @@ assets/                logo, favicon, huruf, MapLibre
 - [x] "Saya juga lihat ini" dan model kasus
 - [x] Lacak dengan batas 7 hari dan foto sebelum/sesudah
 - [x] Panel petugas berbasis PIN, papan skor per dinas/kecamatan/penyedia
+- [x] Jejak perubahan publik yang dicatat trigger database (termasuk suntingan lewat dasbor)
 - [x] Database Supabase dengan RLS dan fungsi, plus mode cadangan
 - [x] Halaman Tentang, Panduan juri, Sistem desain, dan 404
 - [ ] Laporan lapangan asli dari kunjungan tim (bertanda "tim" di database)

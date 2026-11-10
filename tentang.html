@@ -22,8 +22,8 @@
       <nav class="navigasi" aria-label="Utama">
         <a href="peta.html">Peta proyek</a>
         <a href="skor.html">Papan skor</a>
-        <a href="tentang.html" aria-current="page">Tentang</a>
-        <a href="panduan.html">Panduan juri</a>
+        <a href="index.html#cara-kerja">Cara kerja</a>
+        <a class="navigasi__lapor" href="lapor.html"><svg aria-hidden="true"><use href="#i-kamera"></use></svg>Laporkan</a>
       </nav>
       <form class="lacak-cepat" action="lacak.html" role="search" aria-label="Lacak laporan">
         <label for="lacak-cepat-kode" class="sr">Kode lacak</label>
@@ -47,6 +47,7 @@
             <li><a href="#nama">Arti nama Tally</a></li>
             <li><a href="#sumber">Sumber data</a></li>
             <li><a href="#metode">Metode dan rumus</a></li>
+            <li><a href="#jejak">Jejak perubahan</a></li>
             <li><a href="#etika">Privasi dan etika</a></li>
             <li><a href="#tim">Tim</a></li>
           </ol>
@@ -98,7 +99,7 @@
           <h3>Stempel status lapangan</h3>
           <ul>
             <li><b>Belum dicek</b>: belum ada laporan yang diterima untuk proyek itu.</li>
-            <li><b>Tidak cocok</b>: ada kasus terbuka dengan kondisi belum dikerjakan, terbengkalai, atau rusak setelah selesai.</li>
+            <li><b>Tidak cocok</b>: ada kasus terbuka dengan kondisi belum dikerjakan, terbengkalai, rusak setelah selesai, atau tidak ditemukan di lokasi.</li>
             <li><b>Cocok</b>: semua laporan menyatakan sesuai atau sedang dikerjakan, atau masalah sebelumnya sudah diselesaikan.</li>
           </ul>
           <h3>Kasus dan laporan ganda</h3>
@@ -120,6 +121,15 @@
           <h3>Papan skor</h3>
           <p>% selesai = kasus berstatus Selesai ÷ semua kasus masalah (yang ditolak tidak dihitung). Waktu respons = rata-rata hari dari laporan masuk sampai Ditindaklanjuti atau Selesai. Batas tanggapan 7 hari; lewat dari itu kasus ditandai merah. Status di Panel Petugas saat ini diubah oleh tim sebagai simulasi petugas.</p>
 
+          <h2 id="jejak">Jejak perubahan: siapa mengawasi pengelola Tally?</h2>
+          <p>Tim Tally memegang database, jadi wajar kalau warga bertanya: bagaimana kalau status kasus diubah diam-diam atau laporan yang tidak enak dihapus? Karena itu setiap perubahan dan penghapusan data laporan dan proyek dicatat otomatis oleh <i>trigger</i> di database, apa pun jalurnya: Panel Petugas, PIN admin, atau suntingan langsung di dasbor Supabase. Data yang dimasukkan ke database tanpa lewat formulir juga tercatat.</p>
+          <ul>
+            <li>Setiap catatan berisi waktu, kode laporan atau ID proyek, kolom yang berubah (nilai lama dan baru), jalurnya, dan alasan.</li>
+            <li>Penghapusan laporan wajib disertai alasan. Kode yang dihapus tetap bisa dilacak dan menampilkan kapan serta mengapa ia dihapus.</li>
+            <li>Isi jejak tidak bisa diubah, dihapus, atau dikosongkan, termasuk dari dasbor database, dan terbuka untuk siapa pun di halaman <a href="jejak.html">Jejak perubahan</a> serta lewat API.</li>
+          </ul>
+          <p class="pudar">Batasnya kami tulis terbuka: pemilik database secara teknis masih bisa mematikan pencatat ini dengan sengaja. Langkah berikutnya adalah menyalin jejak setiap hari ke arsip publik di luar Tally.</p>
+
           <h2 id="etika">Privasi dan etika</h2>
           <ul>
             <li>Tidak ada nama, NIK, nomor HP, atau akun pelapor. Kode lacak adalah satu-satunya penanda.</li>
@@ -128,7 +138,7 @@
             <li>Untuk mencegah satu orang menggandakan hitungan "warga melihat ini", setiap perangkat diberi ID acak. ID itu disimpan di tabel yang tidak bisa dibaca publik dan tidak terhubung ke identitas apa pun.</li>
             <li>Pelapor diminta menghindari wajah dan pelat nomor di foto.</li>
             <li>Tally menampilkan data dan sinyal, bukan tuduhan. Kata yang dipakai adalah "tidak cocok" dan "perlu dicek", bukan "korupsi".</li>
-            <li>Database dilindungi Row Level Security: publik hanya bisa membaca, semua penulisan lewat fungsi yang memeriksa isinya, dan aksi petugas memerlukan PIN.</li>
+            <li>Database dilindungi Row Level Security: publik hanya bisa membaca, semua penulisan lewat fungsi yang memeriksa isinya, aksi petugas memerlukan PIN, dan setiap perubahan tercatat di Jejak perubahan.</li>
           </ul>
 
           <h2 id="tim">Tim error 404</h2>
@@ -158,6 +168,7 @@
             <li><a href="lapor.html">Laporkan proyek</a></li>
             <li><a href="lacak.html">Lacak laporan</a></li>
             <li><a href="skor.html">Papan skor</a></li>
+            <li><a href="jejak.html">Jejak perubahan</a></li>
           </ul>
         </nav>
         <nav aria-labelledby="kaki-tentang">

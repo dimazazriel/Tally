@@ -1,6 +1,8 @@
 // Peta dasar Tally (dipakai halaman peta, detail, dan lapor).
 // MapLibre GL JS + gaya OpenFreeMap Positron yang diredam warnanya, penanda status,
-// kompas yang bisa diputar, dan titik lokasi pengguna. Tanpa kunci API.
+// dan titik lokasi pengguna. Tanpa kunci API.
+// Seperti Google Maps: di komputer peta selalu menghadap utara (tidak bisa diputar);
+// di layar sentuh peta bisa diputar dua jari dan kompas muncul saat peta miring.
 const PetaTally = (() => {
   const SUMBER_GAYA = [
     { url: 'https://tiles.openfreemap.org/styles/positron', redam: true },
@@ -11,6 +13,7 @@ const PetaTally = (() => {
   const WARNA_AREA = '#4a2fa0';
   const WARNA_SAYA = '#2563eb';
   const GERAK_HALUS = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const LAYAR_SENTUH = window.matchMedia('(pointer: coarse)').matches;
 
   const TEKS = {
     'NavigationControl.ZoomIn': 'Perbesar',
@@ -94,7 +97,9 @@ const PetaTally = (() => {
   }
 
   // ---------- Membuat peta ----------
-  async function buat(wadah, { pusat, zoom = 12, kooperatif = false, lokasi = false, saatLokasi } = {}) {
+  // kooperatif: true = di HP peta digeser dua jari (untuk peta kecil di halaman panjang)
+  // putar     : boleh diputar? Bawaan: hanya di layar sentuh (dua jari)
+  async function buat(wadah, { pusat, zoom = 12, kooperatif = false, lokasi = false, saatLokasi, putar = LAYAR_SENTUH } = {}) {
     if (typeof maplibregl === 'undefined') throw new Error('Pustaka peta gagal dimuat.');
     wadah.classList.add('peta--memuat');
     let style;
@@ -114,6 +119,7 @@ const PetaTally = (() => {
       maxPitch: 0,
       pitchWithRotate: false,
       touchPitch: false,
+      dragRotate: putar,
       cooperativeGestures: kooperatif,
       attributionControl: { compact: true },
       locale: TEKS
@@ -126,8 +132,13 @@ const PetaTally = (() => {
       peta.__galatTercatat = true;
       console.warn('[Tally] Peta:', (e && e.error && e.error.message) || e);
     });
+    if (!putar) {
+      // Komputer: matikan semua cara memutar (klik kanan + seret, Ctrl + seret, Shift + panah)
+      peta.keyboard.disableRotation();
+      peta.touchZoomRotate.disableRotation();
+    }
     peta.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
-    peta.addControl(new KontrolKompas(), 'top-right');
+    if (putar) peta.addControl(new KontrolKompas({ ringkas: true }), 'top-right');
     if (lokasi) {
       peta.__lokasi = new KontrolLokasi({ saatLokasi });
       peta.addControl(peta.__lokasi, 'top-right');
@@ -361,12 +372,15 @@ const PetaTally = (() => {
     navigator.permissions.query({ name: 'geolocation' }).then((s) => { if (s.state === 'granted') k.mulai(false); }).catch(() => {});
   }
 
-  // ---------- Kompas yang bisa diputar ----------
+  // ---------- Kompas ----------
+  // ringkas: hanya piringan kompas, dan baru muncul setelah peta diputar
+  // (klik untuk kembali menghadap utara), seperti kompas di Google Maps.
   class KontrolKompas {
+    constructor({ ringkas = false } = {}) { this._ringkas = ringkas; }
     onAdd(peta) {
       this._peta = peta;
       const el = (this._el = document.createElement('div'));
-      el.className = 'maplibregl-ctrl kompas';
+      el.className = 'maplibregl-ctrl kompas' + (this._ringkas ? ' kompas--ringkas' : '');
       el.innerHTML = `
         <button type="button" class="kompas__putar" data-putar="45" aria-label="Putar peta ke kiri" title="Putar ke kiri">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8.2 6.8A7 7 0 1 1 5.2 13"/><path d="M8.6 2.8v4.4H4.2"/></svg>
@@ -385,6 +399,7 @@ const PetaTally = (() => {
         <button type="button" class="kompas__putar" data-putar="-45" aria-label="Putar peta ke kanan" title="Putar ke kanan">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.8 6.8A7 7 0 1 0 18.8 13"/><path d="M15.4 2.8v4.4h4.4"/></svg>
         </button>`;
+      if (this._ringkas) el.querySelectorAll('.kompas__putar').forEach((b) => b.remove());
       this._badan = el.querySelector('.kompas__badan');
       this._piringan = el.querySelector('.kompas__piringan');
       el.querySelectorAll('[data-putar]').forEach((b) => b.addEventListener('click', () => {

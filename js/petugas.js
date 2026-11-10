@@ -102,6 +102,7 @@
         ${semua.map((x) => `<li><code>${esc(x.kode)}</code> ${esc(cekBukti(x).teks)}${x.akurasiMeter != null ? ' · GPS ±' + x.akurasiMeter + ' m' : ''}${x.catatan ? ': “' + esc(x.catatan) + '”' : ''}${x.temuan && x.temuan.length ? ' · ' + x.temuan.map(esc).join(', ') : ''}</li>`).join('')}
       </ul>
       <ol class="linimasa">${rk.map((r) => `<li class="${r.status === 'Ditolak' ? 'ditolak' : 'selesai'}"><span class="linimasa__titik">${ikon(r.status === 'Ditolak' ? 'silang' : 'centang')}</span><div><b>${esc(r.status)}</b><small>${tanggal(r.waktu)}</small>${r.catatan && r.catatan !== 'Laporan masuk' ? `<q>${esc(r.catatan)}</q>` : ''}</div></li>`).join('')}</ol>
+      <p style="font-size:var(--t-xs);margin:8px 0 0"><a href="jejak.html?kode=${encodeURIComponent(k.kode)}" target="_blank" rel="noopener">Lihat jejak perubahan kasus ini</a></p>
       <form id="form-aksi" class="tumpuk" style="margin-top:8px">
         <label class="isian"><span>Catatan untuk pelapor <small class="pudar">(wajib untuk Tolak dan Selesai)</small></span>
           <textarea class="kotak" id="catatan-aksi" maxlength="600" style="min-height:80px" placeholder="Contoh: sudah dicek ke lokasi, diteruskan ke DPUPR."></textarea>
@@ -150,16 +151,40 @@
     lapis.innerHTML = `<div class="panel" role="dialog" aria-modal="true" aria-labelledby="judul-hapus">
       <h2 id="judul-hapus" class="panel__judul" style="font-size:var(--t-l)">Hapus kasus ${esc(k.kode)}?</h2>
       <p style="font-size:var(--t-s)">${k.anggota.length ? `Kasus ini punya ${k.anggota.length} laporan gabungan yang ikut terhapus. ` : ''}Penghapusan permanen dan tidak bisa dibatalkan. Untuk laporan iseng, "Tolak" biasanya cukup.</p>
+      <label class="isian" style="margin-top:12px"><span>Alasan penghapusan <small class="pudar">(wajib, tampil publik di <a href="jejak.html" target="_blank" rel="noopener">Jejak perubahan</a>)</small></span>
+        <textarea class="kotak" id="alasan-hapus" maxlength="300" style="min-height:72px" placeholder="Contoh: foto berisi wajah orang dan pelat nomor."></textarea>
+      </label>
+      <p class="galat" id="galat-hapus" hidden></p>
       <div class="baris" style="margin-top:16px"><button class="tombol tombol--bahaya" type="button" data-ya>Hapus permanen</button><button class="tombol tombol--garis" type="button" data-batal>Batal</button></div>
     </div>`;
     document.body.appendChild(lapis);
     const tutup = () => lapis.remove();
-    lapis.querySelector('[data-batal]').focus();
+    lapis.querySelector('#alasan-hapus').focus();
     lapis.addEventListener('click', async (e) => {
       if (e.target === lapis || e.target.closest('[data-batal]')) return tutup();
-      if (e.target.closest('[data-ya]')) {
-        try { await Data.hapusLaporan(k.kode, pin); notif(k.kode + ' dihapus'); pilihan = null; $('#detail-kasus').innerHTML = '<p class="pudar">Pilih satu kasus di tabel.</p>'; tutup(); await muat(); }
-        catch (err) { notif('Gagal menghapus: ' + err.message); }
+      const ya = e.target.closest('[data-ya]');
+      if (!ya) return;
+      const alasan = lapis.querySelector('#alasan-hapus').value.trim();
+      const g = lapis.querySelector('#galat-hapus');
+      if (alasan.length < 5) {
+        g.innerHTML = `${ikon('peringatan')}Tulis alasan penghapusan (minimal 5 karakter).`;
+        g.hidden = false;
+        lapis.querySelector('#alasan-hapus').setAttribute('aria-invalid', 'true');
+        lapis.querySelector('#alasan-hapus').focus();
+        return;
+      }
+      ya.disabled = true;
+      try {
+        await Data.hapusLaporan(k.kode, pin, alasan);
+        notif(k.kode + ' dihapus. Alasannya tercatat di Jejak perubahan.');
+        pilihan = null;
+        $('#detail-kasus').innerHTML = '<p class="pudar">Pilih satu kasus di tabel.</p>';
+        tutup();
+        await muat();
+      } catch (err) {
+        g.innerHTML = `${ikon('peringatan')}Gagal menghapus: ${esc(err.message)}`;
+        g.hidden = false;
+        ya.disabled = false;
       }
     });
     lapis.addEventListener('keydown', (e) => { if (e.key === 'Escape') tutup(); });

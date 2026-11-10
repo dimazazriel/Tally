@@ -22,8 +22,8 @@
       <nav class="navigasi" aria-label="Utama">
         <a href="peta.html">Peta proyek</a>
         <a href="skor.html" aria-current="page">Papan skor</a>
-        <a href="tentang.html">Tentang</a>
-        <a href="panduan.html">Panduan juri</a>
+        <a href="index.html#cara-kerja">Cara kerja</a>
+        <a class="navigasi__lapor" href="lapor.html"><svg aria-hidden="true"><use href="#i-kamera"></use></svg>Laporkan</a>
       </nav>
       <form class="lacak-cepat" action="lacak.html" role="search" aria-label="Lacak laporan">
         <label for="lacak-cepat-kode" class="sr">Kode lacak</label>
@@ -47,6 +47,14 @@
         <div><b>…</b><span>lewat batas 7 hari</span></div>
       </div>
 
+      <section class="kosong ajak-skor" id="ajak" aria-labelledby="judul-ajak" hidden>
+        <div>
+          <h2 id="judul-ajak" style="font-size:var(--t-l)">Skor ini hidup dari laporan warga</h2>
+          <p>Peringkat baru bermakna setelah ada kasus. Pilih proyek yang belum dicek dan jadilah pelapor pertamanya.</p>
+        </div>
+        <a class="tombol" href="peta.html?status=belum"><svg aria-hidden="true"><use href="#i-peta"></use></svg>Lihat proyek yang belum dicek</a>
+      </section>
+
       <section style="margin-top:40px" aria-labelledby="judul-tabel">
         <div class="saring-tab">
           <h2 id="judul-tabel" style="font-size:var(--t-xl)">Peringkat <span id="judul-kelompok">dinas</span></h2>
@@ -64,23 +72,16 @@
         </div>
       </section>
 
-      <div class="dua-kolom" style="margin-top:40px">
-        <section class="panel" id="cara-hitung" aria-labelledby="judul-cara">
-          <h2 id="judul-cara" class="panel__judul" style="font-size:var(--t-l)">Cara menghitung</h2>
-          <ul style="margin:0;padding-left:1.2em;display:grid;gap:8px;font-size:var(--t-s)">
-            <li><b>Kasus</b>: laporan pertama untuk satu proyek dengan kondisi bermasalah (belum dikerjakan, terbengkalai, atau rusak). Laporan berikutnya untuk hal yang sama digabung ke kasus itu.</li>
-            <li><b>Selesai</b>: kasus berstatus "Selesai" dibagi semua kasus. Kasus yang ditolak petugas tidak dihitung.</li>
-            <li><b>Respons</b>: rata-rata hari dari laporan masuk sampai status "Ditindaklanjuti" atau "Selesai".</li>
-            <li><b>Lewat batas</b>: kasus terbuka yang sudah lebih dari 7 hari.</li>
-          </ul>
-          <p class="pudar" style="font-size:var(--t-xs);margin-top:12px">Status di Panel Petugas saat ini diubah tim sebagai simulasi petugas, jadi skor belum mencerminkan tanggapan resmi dinas.</p>
-        </section>
-        <section class="kosong" id="ajak" aria-labelledby="judul-ajak">
-          <h2 id="judul-ajak" style="font-size:var(--t-l)">Skor ini hidup dari laporan warga</h2>
-          <p>Tanpa laporan, tidak ada yang bisa dinilai. Pilih proyek yang belum dicek dan jadilah pelapor pertamanya.</p>
-          <a class="tombol" href="peta.html?status=belum"><svg aria-hidden="true"><use href="#i-peta"></use></svg>Lihat proyek yang belum dicek</a>
-        </section>
-      </div>
+      <details class="panel lipat" id="cara-hitung" style="margin-top:24px">
+        <summary>Cara menghitung skor</summary>
+        <ul style="margin-block:0;padding-left:1.2em;display:grid;gap:8px;font-size:var(--t-s)">
+          <li><b>Kasus</b>: laporan pertama untuk satu proyek dengan kondisi bermasalah (belum dikerjakan, terbengkalai, rusak, atau tidak ditemukan di lokasi). Laporan berikutnya untuk hal yang sama digabung ke kasus itu.</li>
+          <li><b>Selesai</b>: kasus berstatus "Selesai" dibagi semua kasus. Kasus yang ditolak petugas tidak dihitung.</li>
+          <li><b>Respons</b>: rata-rata hari dari laporan masuk sampai status "Ditindaklanjuti" atau "Selesai".</li>
+          <li><b>Lewat batas</b>: kasus terbuka yang sudah lebih dari 7 hari.</li>
+        </ul>
+        <p class="pudar" style="font-size:var(--t-xs);margin-top:12px">Status di Panel Petugas saat ini diubah tim sebagai simulasi petugas, jadi skor belum mencerminkan tanggapan resmi dinas. Setiap perubahan status tercatat di <a href="jejak.html">Jejak perubahan</a>.</p>
+      </details>
     </div>
   </main>
   <footer class="kaki">
@@ -99,6 +100,7 @@
             <li><a href="lapor.html">Laporkan proyek</a></li>
             <li><a href="lacak.html">Lacak laporan</a></li>
             <li><a href="skor.html">Papan skor</a></li>
+            <li><a href="jejak.html">Jejak perubahan</a></li>
           </ul>
         </nav>
         <nav aria-labelledby="kaki-tentang">

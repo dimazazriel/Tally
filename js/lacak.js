@@ -16,6 +16,19 @@
       return;
     }
     if (!h) {
+      // Laporan yang dihapus tetap meninggalkan jejak: kapan, lewat jalur apa, dan alasannya
+      const jj = await Data.jejak({ kunci: k }).catch(() => null);
+      const hapus = (jj || []).find((j) => j.aksi === 'dihapus');
+      if (hapus) {
+        wadah.innerHTML = `<div class="kosong" style="max-width:760px">
+          <h2 style="font-size:var(--t-xl)">Laporan ${esc(k)} sudah dihapus</h2>
+          <p>Dihapus ${esc(tanggal(hapus.waktu))} lewat jalur <b>${esc(labelJalur(hapus.jalur))}</b>.
+            ${hapus.alasan ? `Alasan: “${esc(hapus.alasan)}”` : 'Tidak ada alasan yang tercatat.'}</p>
+          <p class="pudar" style="font-size:var(--t-s)">Foto dan isi laporan tidak lagi ditampilkan, tetapi catatan penghapusannya tetap terbuka.</p>
+          <a class="tombol tombol--garis" href="jejak.html?kode=${encodeURIComponent(k)}">Lihat di Jejak perubahan</a>
+        </div>`;
+        return;
+      }
       wadah.innerHTML = `<div class="kosong" style="max-width:760px">
         <h2 style="font-size:var(--t-xl)">Kode ${esc(k)} tidak ditemukan</h2>
         <p>Periksa lagi penulisannya: TLY- lalu 4 huruf/angka. Kalau laporan dikirim saat mode cadangan, kodenya hanya bisa dilacak dari perangkat yang sama.</p>
@@ -88,10 +101,18 @@
           <div class="baris">
             <a class="tombol tombol--garis" href="detail.html?id=${encodeURIComponent(p.id || '')}">Lihat struk proyek</a>
             <button class="tombol tombol--polos" type="button" id="salin-lacak">${ikon('salin')}Salin kode</button>
+            <a class="tombol tombol--polos" id="tautan-jejak" href="jejak.html?kode=${encodeURIComponent(kasus.kode)}">${ikon('jam')}Jejak perubahan</a>
           </div>
         </div>
       </div>`;
     $('#salin-lacak').addEventListener('click', () => salin(lap.kode));
+
+    // Berapa kali kasus ini diubah setelah masuk (status, tanggapan, suntingan database)
+    Data.jejak({ kunci: kasus.kode }).then((jj) => {
+      const t = $('#tautan-jejak');
+      if (!t || !jj) return;
+      t.lastChild.textContent = jj.length ? `Jejak perubahan (${jj.length})` : 'Jejak perubahan (belum ada)';
+    }).catch(() => {});
   }
 
   $('#form-lacak').addEventListener('submit', (e) => { e.preventDefault(); tampilkan($('#kode').value); });

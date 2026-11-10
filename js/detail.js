@@ -123,7 +123,10 @@
   const radius = batasRadius(p);
   $('#catatan-lokasi').innerHTML = `<span>${p.catatanLokasi ? esc(p.catatanLokasi.replace(/\.\s*$/, '')) + '. ' : ''}Lingkaran = radius cek GPS ${radius} m. ` +
     (radius > 300 ? 'Radius dilonggarkan karena titiknya masih perkiraan.' : 'Titik ini lokasi bangunan atau ruas jalannya.') +
-    '</span> <span id="jarak-saya"></span>';
+    '</span> <span id="jarak-saya"></span>' +
+    `<span class="tautan-gmaps"><a href="${urlRute(p)}" target="_blank" rel="noopener">${ikon('peta')}Rute di Google Maps</a>` +
+    `<a href="${urlGmaps(p)}" target="_blank" rel="noopener">${ikon('tautan')}Buka titik di Google Maps</a>` +
+    (lokasiKira(p.presisiLokasi) ? '<small>Titik perkiraan: rute menuju titik tengah ' + esc(p.presisiLokasi) + ', bukan alamat persis.</small>' : '') + '</span>';
   try {
     const pm = await PetaTally.buat($('#peta-mini'), {
       pusat: p, zoom: 14, kooperatif: true, lokasi: true,

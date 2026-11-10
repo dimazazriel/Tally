@@ -71,6 +71,21 @@
     }
   }).catch((e) => console.error('[Tally] Gagal menyiapkan data:', e));
 
+  // Tautan ke bagian halaman (mis. index.html#cara-kerja) tetap tepat walau
+  // konten di atasnya baru selesai dimuat belakangan. Berhenti begitu pengguna
+  // menggulir sendiri, atau setelah 4 detik.
+  (function jagaJangkar() {
+    const id = decodeURIComponent(location.hash.slice(1));
+    const el = id && document.getElementById(id);
+    if (!el || !('ResizeObserver' in window)) return;
+    let aktif = true;
+    const ro = new ResizeObserver(() => { if (aktif) el.scrollIntoView({ block: 'start', behavior: 'instant' }); });
+    const henti = () => { aktif = false; ro.disconnect(); };
+    ro.observe(document.body);
+    ['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach((ev) => window.addEventListener(ev, henti, { once: true, passive: true }));
+    setTimeout(henti, 4000);
+  })();
+
   // Form "Lacak" di kepala: normalisasi kode
   $$('.lacak-cepat').forEach((f) => f.addEventListener('submit', (e) => {
     const input = f.querySelector('input');

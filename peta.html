@@ -24,8 +24,8 @@
       <nav class="navigasi" aria-label="Utama">
         <a href="peta.html" aria-current="page">Peta proyek</a>
         <a href="skor.html">Papan skor</a>
-        <a href="tentang.html">Tentang</a>
-        <a href="panduan.html">Panduan juri</a>
+        <a href="index.html#cara-kerja">Cara kerja</a>
+        <a class="navigasi__lapor" href="lapor.html"><svg aria-hidden="true"><use href="#i-kamera"></use></svg>Laporkan</a>
       </nav>
       <form class="lacak-cepat" action="lacak.html" role="search" aria-label="Lacak laporan">
         <label for="lacak-cepat-kode" class="sr">Kode lacak</label>
@@ -36,14 +36,20 @@
   </header>
   <main id="isi">
     <h1 class="sr">Peta proyek Kota Depok</h1>
-    <div class="peta-tata">
-      <aside class="peta-tata__samping" aria-label="Saring dan daftar proyek">
+    <div class="peta-tata" id="peta-tata">
+      <aside class="peta-tata__samping" id="panel-samping" aria-label="Saring dan daftar proyek">
         <h2 style="font-size:var(--t-xl)">Peta proyek</h2>
         <p class="pudar" style="font-size:var(--t-s);margin:6px 0 16px">24 paket pembangunan Pemkot Depok 2025–2026. Warna penanda menunjukkan hasil cek warga.</p>
         <form class="saring" id="saring" onsubmit="return false">
-          <label class="isian"><span>Cari proyek</span>
-            <input class="kotak" id="cari" type="search" placeholder="Nama, kecamatan, atau penyedia" autocomplete="off">
-          </label>
+          <div class="isian cari">
+            <label class="label" for="cari">Cari proyek atau kecamatan</label>
+            <div class="cari__kotak">
+              <input class="kotak" id="cari" type="search" placeholder="Contoh: Sawangan, puskesmas, SMPN 3" autocomplete="off" spellcheck="false"
+                     role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="saran-cari" aria-describedby="bantuan-cari">
+              <ul class="saran" id="saran-cari" role="listbox" aria-label="Saran pencarian" hidden></ul>
+            </div>
+            <small id="bantuan-cari">Salah ketik tetap dicari. Tekan Enter untuk menuju hasil teratas.</small>
+          </div>
           <label class="isian"><span>Sektor</span>
             <select class="kotak" id="filter-sektor"><option value="">Semua sektor</option></select>
           </label>
@@ -72,6 +78,9 @@
         <ul class="daftar-proyek" id="daftar"></ul>
       </aside>
       <div class="peta-tata__peta">
+        <button type="button" class="lipat-samping" id="lipat-samping" aria-controls="panel-samping" aria-expanded="true" aria-label="Sembunyikan daftar proyek" title="Sembunyikan daftar">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m14.5 6-6 6 6 6"/></svg>
+        </button>
         <div id="peta" role="region" aria-label="Peta interaktif proyek"></div>
         <details class="legenda" id="legenda" open>
           <summary>Keterangan peta</summary>
@@ -103,6 +112,7 @@
             <li><a href="lapor.html">Laporkan proyek</a></li>
             <li><a href="lacak.html">Lacak laporan</a></li>
             <li><a href="skor.html">Papan skor</a></li>
+            <li><a href="jejak.html">Jejak perubahan</a></li>
           </ul>
         </nav>
         <nav aria-labelledby="kaki-tentang">

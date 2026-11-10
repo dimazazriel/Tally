@@ -28,7 +28,7 @@
     angka(kasus.filter(lewat).length)
   ];
   $$('#ringkas b').forEach((b, i) => (b.textContent = isi[i]));
-  $('#ajak').hidden = kasus.length >= 5;
+  $('#ajak').hidden = kasus.length >= 5;   // ajakan tampil selama kasus masih sedikit
 
   const LABEL = { dinas: 'Dinas', kecamatan: 'Kecamatan', penyedia: 'Penyedia' };
   function render(kelompok) {

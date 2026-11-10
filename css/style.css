@@ -136,6 +136,15 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .navigasi a:hover { background: var(--semen); color: var(--tinta); }
 .navigasi a[aria-current="page"] { color: var(--cap); background: var(--cap-muda); }
+.navigasi a.navigasi__lapor { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; background: var(--cap); color: #fff; }
+.navigasi a.navigasi__lapor:hover { background: var(--cap-tua); color: #fff; }
+.navigasi a.navigasi__lapor[aria-current="page"] { background: var(--cap-tua); color: #fff; box-shadow: inset 0 0 0 2px rgba(255,255,255,.35); }
+.navigasi__lapor svg { width: 17px; height: 17px; flex: none; }
+/* HP: "Cara kerja" ada di beranda, jadi disembunyikan dari menu agar tombol Laporkan selalu terlihat */
+@media (max-width: 600px) { .navigasi a[href="index.html#cara-kerja"] { display: none; } }
+@media (max-width: 340px) { .kepala .navigasi { gap: 2px; } .kepala .navigasi a { padding: 8px 7px; font-size: var(--t-xs); } }
+#cara-kerja { scroll-margin-top: 72px; }
+@media (max-width: 900px) { #cara-kerja { scroll-margin-top: 112px; } }
 .lacak-cepat { display: flex; gap: var(--j2); }
 .lacak-cepat input {
   width: 9.5rem; font-family: var(--huruf-struk); font-size: var(--t-s); text-transform: uppercase;
@@ -392,6 +401,18 @@ textarea.kotak { min-height: 110px; resize: vertical; line-height: 1.5; }
 .tabel td.redup { color: var(--tinta-pudar); }
 
 /* ---------- Tab ---------- */
+/* Lipatan (details): penjelasan yang tidak perlu selalu terbuka */
+.lipat { padding: 0; }
+.lipat > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: var(--j3); padding: var(--j4) var(--j5); font-weight: 800; border-radius: var(--r-panel); }
+.lipat > summary::-webkit-details-marker { display: none; }
+.lipat > summary::after { content: ""; flex: none; width: 9px; height: 9px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-3px) rotate(45deg); transition: transform var(--durasi); }
+.lipat[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
+.lipat > summary:hover { background: #f7f8fa; }
+.lipat > :not(summary) { margin-inline: var(--j5); }
+.lipat > :last-child { margin-bottom: var(--j5); }
+.kosong.ajak-skor { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--j4); margin-top: var(--j6); text-align: left; }
+.kosong.ajak-skor[hidden] { display: none; }
+.kosong.ajak-skor p { margin-top: 6px; }
 .tab { display: inline-flex; padding: 4px; gap: 4px; background: var(--semen-gelap); border-radius: var(--r-kecil); }
 .tab button { border: 0; background: transparent; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: var(--t-s); color: var(--tinta-pudar); cursor: pointer; min-height: 38px; }
 .tab button[aria-pressed="true"] { background: var(--putih); color: var(--tinta); box-shadow: 0 1px 2px rgba(27,27,58,.12); }
@@ -424,6 +445,35 @@ textarea.kotak { min-height: 110px; resize: vertical; line-height: 1.5; }
   .peta-tata__peta { order: -1; min-height: 0; height: 62vh; height: 62svh; }
 }
 .peta-tata__peta #peta { position: absolute; inset: 0; }
+/* Panel kiri bisa dilipat (komputer), seperti Google Maps */
+.lipat-samping { display: none; }
+@media (min-width: 980px) {
+  .peta-tata--lipat { grid-template-columns: minmax(0, 1fr); }
+  .peta-tata--lipat .peta-tata__samping { display: none; }
+  .lipat-samping {
+    display: grid; place-items: center; position: absolute; left: 0; top: 16px; z-index: 3;
+    width: 26px; height: 52px; padding: 0; border: 1px solid var(--garis); border-left: 0; border-radius: 0 10px 10px 0;
+    background: var(--putih); color: var(--tinta); cursor: pointer; box-shadow: 0 6px 16px -10px rgba(27,27,58,.45);
+    transition: background var(--durasi), width var(--durasi);
+  }
+  .lipat-samping:hover { background: var(--semen); width: 30px; }
+  .lipat-samping:focus-visible { outline: 3px solid var(--cap); outline-offset: 2px; }
+  .lipat-samping svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .peta-tata--lipat .lipat-samping svg { transform: scaleX(-1); }
+  .peta-tata--lipat .maplibregl-ctrl-top-left { margin-left: 28px; }
+}
+/* Pencarian dengan saran */
+.cari__kotak { position: relative; }
+.saring .isian > .label { font-size: var(--t-xs); }
+.saran { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 40; list-style: none; margin: 0; padding: 4px; background: var(--putih); border: 1px solid var(--garis); border-radius: var(--r-kecil); box-shadow: 0 14px 30px -14px rgba(27,27,58,.5); max-height: 360px; overflow-y: auto; }
+.saran li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; align-items: start; padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: var(--t-s); }
+.saran li[aria-selected="true"], .saran li:hover { background: var(--cap-muda); }
+.saran b { display: block; font-weight: 700; line-height: 1.3; }
+.saran small { display: block; color: var(--tinta-pudar); font-size: var(--t-xs); margin-top: 1px; }
+.saran .ikon { width: 18px; height: 18px; color: var(--cap); margin-top: 1px; }
+.saran .titik-status { width: 12px; height: 12px; border-radius: 50%; margin: 4px 0 0 3px; background: var(--belum); }
+.saran__kosong { color: var(--tinta-pudar); cursor: default !important; }
+.saran__kosong:hover { background: none !important; }
 .saring { display: grid; gap: var(--j3); grid-template-columns: 1fr 1fr; }
 .saring .isian:first-child { grid-column: 1 / -1; }
 .saring .kotak { min-height: 40px; padding: 8px 10px; font-size: var(--t-s); }
@@ -472,6 +522,8 @@ textarea.kotak { min-height: 110px; resize: vertical; line-height: 1.5; }
 .kompas__jarum-s { fill: #fff; stroke: var(--tinta-pudar); stroke-width: 1; stroke-linejoin: round; }
 .kompas__poros { fill: var(--kertas); stroke: var(--tinta); stroke-width: 1; }
 .kompas button:focus-visible { outline: 3px solid var(--cap); outline-offset: 1px; }
+.kompas--ringkas { padding: 2px; }
+.kompas--ringkas:not(.kompas--miring) { display: none; }
 
 /* Tombol lokasiku */
 .lokasiku svg { width: 20px; height: 20px; margin: auto; display: block; fill: none; stroke: var(--tinta); stroke-width: 2; stroke-linecap: round; }
@@ -534,6 +586,13 @@ textarea.kotak { min-height: 110px; resize: vertical; line-height: 1.5; }
 .popup__aksi { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 .popup__aksi .tombol { color: #fff; }
 .popup__aksi .tombol--garis { color: var(--tinta); }
+.popup__tautan { margin-top: 8px; font-size: var(--t-xs); display: flex; flex-wrap: wrap; gap: 2px 6px; align-items: center; font-weight: 600; }
+.popup__tautan span { color: var(--tinta-pudar); }
+.popup__tautan small { flex-basis: 100%; color: var(--tinta-pudar); font-weight: 400; }
+.tautan-gmaps { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin-top: 10px; font-weight: 600; }
+.tautan-gmaps a { display: inline-flex; align-items: center; gap: 6px; }
+.tautan-gmaps .ikon { width: 16px; height: 16px; }
+.tautan-gmaps small { flex-basis: 100%; font-weight: 400; }
 .peta-galat { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 8px; padding: var(--j5); text-align: center; background: var(--semen); color: var(--tinta-pudar); font-size: var(--t-s); }
 .peta-galat svg { width: 28px; height: 28px; color: var(--cek); }
 .peta-galat p { max-width: 36ch; }
@@ -702,3 +761,19 @@ pre.kode code { background: none; padding: 0; color: inherit; }
 }
 .contoh-penanda .penanda { cursor: default; }
 .contoh-penanda .penanda:not(.penanda--aktif):hover .penanda__badan { transform: none; }
+
+/* ---------- Jejak perubahan ---------- */
+.saring-jejak .kotak { min-height: 40px; padding: 8px 10px; font-size: var(--t-s); width: auto; }
+.saring-jejak #cari-jejak { width: 12.5rem; }
+.tabel--jejak td { vertical-align: top; }
+.jejak-ubah { margin: 0; padding-left: 1.1em; display: grid; gap: 2px; }
+.jejak-ubah__grup + .jejak-ubah__grup { margin-top: 8px; }
+.jejak-ubah__grup small { color: var(--tinta-pudar); font-family: var(--huruf-struk); }
+.jalur-jejak { display: grid; gap: 10px; margin-top: 0; margin-bottom: 16px; }
+.jalur-jejak div { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 12px; align-items: start; font-size: var(--t-s); }
+.jalur-jejak dd { margin: 0; }
+@media (max-width: 640px) {
+  .jalur-jejak div { grid-template-columns: 1fr; gap: 4px; }
+  .saring-jejak { width: 100%; }
+  .saring-jejak #cari-jejak { flex: 1 1 100%; width: 100%; }
+}

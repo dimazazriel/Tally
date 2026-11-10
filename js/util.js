@@ -95,16 +95,20 @@ const KONDISI = [
   { nama: 'Sedang dikerjakan', masalah: false, ket: 'Ada pekerjaan berjalan di lokasi.' },
   { nama: 'Belum dikerjakan', masalah: true, ket: 'Belum ada tanda pekerjaan padahal kontrak sudah jalan.' },
   { nama: 'Terbengkalai', masalah: true, ket: 'Pekerjaan berhenti, material atau bangunan dibiarkan.' },
-  { nama: 'Rusak setelah selesai', masalah: true, ket: 'Sudah jadi, tetapi cepat rusak.' }
+  { nama: 'Rusak setelah selesai', masalah: true, ket: 'Sudah jadi, tetapi cepat rusak.' },
+  { nama: 'Tidak ditemukan di lokasi', masalah: true, ket: 'Di titik ini tidak ada proyek, atau yang ada berbeda.' }
 ];
 const kondisiMasalah = (k) => (KONDISI.find((x) => x.nama === k) || {}).masalah === true;
 
+// Urutan dan ejaan harus sama dengan daftar di fungsi kirim_laporan (schema.sql)
 const TEMUAN = [
   'Tidak ada pekerja di lokasi',
   'Material dibiarkan menumpuk',
   'Tidak ada papan proyek',
+  'Papan proyek tanpa nilai kontrak',
   'Retak atau berlubang',
   'Saluran mampet atau tergenang',
+  'Membahayakan warga',
   'Pekerjaan tampak rapi dan selesai'
 ];
 
@@ -265,3 +269,52 @@ function cekBukti(l) {
 
 // Lokasi proyek yang baru diketahui sampai titik tengah kelurahan/kecamatan
 const lokasiKira = (presisi) => presisi === 'kelurahan' || presisi === 'kecamatan';
+
+// Tautan Google Maps tanpa kunci API: buka titik proyek, atau rute dari posisi pengguna
+const urlGmaps = (p) => `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+const urlRute = (p) => `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`;
+
+// ---------- Jejak perubahan publik ----------
+// Jalur = dari mana perubahan datang (diisi trigger database, lihat schema.sql 3b)
+const JALUR_JEJAK = {
+  'petugas': { label: 'Panel petugas', ket: 'Perubahan status kasus dari Panel Petugas (PIN petugas). Catatan petugas ikut tampil sebagai alasan.' },
+  'admin': { label: 'Admin tim', ket: 'Penghapusan laporan oleh tim (PIN admin). Alasannya wajib diisi dan tampil di sini.' },
+  'dasbor database': { label: 'Langsung di database', ket: 'Diubah lewat dasbor Supabase (Table Editor atau SQL Editor), bukan lewat website. Jalur ini sengaja ditandai mencolok.' },
+  'pembaruan schema.sql': { label: 'Skrip pembaruan', ket: 'Perubahan dari berkas supabase/schema.sql yang terbuka di repositori, misalnya data awal 24 proyek.' },
+  'warga': { label: 'Warga', ket: 'Lewat formulir laporan atau tombol "Saya juga lihat ini".' }
+};
+const labelJalur = (j) => (JALUR_JEJAK[j] || { label: j }).label;
+
+const KOLOM_JEJAK = {
+  status: 'status', tanggapan: 'tanggapan', foto_sesudah_path: 'foto sesudah', kondisi: 'kondisi', temuan: 'temuan',
+  catatan: 'catatan', foto_path: 'foto bukti', jarak_meter: 'jarak', terverifikasi: 'terverifikasi', foto_langsung: 'foto langsung',
+  akurasi_meter: 'akurasi GPS', induk_kode: 'kasus induk', jumlah_dukungan: 'hitungan warga', sumber: 'sumber', dibuat_pada: 'dikirim',
+  proyek_id: 'proyek', nama: 'nama', sektor: 'sektor', tahun: 'tahun', kecamatan: 'kecamatan', dinas: 'dinas', penyedia: 'penyedia',
+  pagu: 'pagu', hps: 'HPS', nilai_kontrak: 'nilai kontrak', mulai: 'mulai', selesai: 'selesai', jadwal: 'jadwal', status_resmi: 'status resmi',
+  sumber_dana: 'sumber dana', kode_tender: 'kode tender', kode_rup: 'kode RUP', sumber_url: 'tautan sumber', lat: 'lintang', lng: 'bujur',
+  presisi_lokasi: 'presisi lokasi', catatan_lokasi: 'catatan lokasi'
+};
+
+function nilaiJejak(kolom, v) {
+  if (v == null || v === '' || (Array.isArray(v) && !v.length)) return 'kosong';
+  if (typeof v === 'boolean') return v ? 'ya' : 'tidak';
+  if (kolom === 'pagu' || kolom === 'hps' || kolom === 'nilai_kontrak') return rupiah(Number(v));
+  if (kolom === 'foto_path' || kolom === 'foto_sesudah_path') return 'ada foto';
+  if (kolom === 'dibuat_pada') return tanggal(v);
+  if (kolom === 'jarak_meter' || kolom === 'akurasi_meter') return jarakTeks(Number(v));
+  if (Array.isArray(v)) return v.join(', ');
+  const t = String(v);
+  return t.length > 90 ? t.slice(0, 87) + '…' : t;
+}
+
+// Ringkasan satu catatan jejak: daftar baris teks biasa (belum di-escape)
+function ringkasJejak(j) {
+  const p = j.perubahan || {};
+  if (j.aksi === 'diubah') {
+    return Object.keys(p)
+      .filter((k) => !(k === 'tanggapan' && j.alasan && p[k].ke === j.alasan))   // sudah tampil di kolom alasan
+      .map((k) => `${KOLOM_JEJAK[k] || k}: ${nilaiJejak(k, p[k].dari)} → ${nilaiJejak(k, p[k].ke)}`);
+  }
+  // ditambah / dihapus: potret data pada saat itu
+  return Object.keys(p).map((k) => `${KOLOM_JEJAK[k] || k}: ${nilaiJejak(k, p[k])}`);
+}

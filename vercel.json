@@ -5,6 +5,7 @@
     { "source": "/lapor", "destination": "/lapor.html" },
     { "source": "/lacak", "destination": "/lacak.html" },
     { "source": "/skor", "destination": "/skor.html" },
+    { "source": "/jejak", "destination": "/jejak.html" },
     { "source": "/petugas", "destination": "/petugas.html" },
     { "source": "/tentang", "destination": "/tentang.html" },
     { "source": "/panduan", "destination": "/panduan.html" },

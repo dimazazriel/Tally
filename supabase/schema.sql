@@ -1,19 +1,3 @@
--- =====================================================================
---  Tally · skema database (Supabase / PostgreSQL)
---
---  Cara pakai: Supabase → SQL Editor → New query → tempel seluruh file
---  ini → Run. Aman dijalankan ulang: tabel yang sudah ada tidak dihapus
---  dan data proyek yang sudah diedit tidak ditimpa.
---
---  Isi:
---   1. Tabel  : proyek, laporan, riwayat, dukungan, pengaturan
---   2. Keamanan: Row Level Security (publik hanya bisa membaca)
---   3. Fungsi : kirim_laporan, dukung, lacak, cek_pin,
---               perbarui_kasus, hapus_laporan
---   4. Penyimpanan foto: bucket "foto-laporan"
---   5. Data awal: 24 proyek Kota Depok + PIN demo petugas
--- =====================================================================
-
 -- ---------------------------------------------------------------------
 -- 1. TABEL
 -- ---------------------------------------------------------------------
@@ -55,7 +39,8 @@ create table if not exists public.laporan (
   proyek_id         text not null references public.proyek(id) on delete cascade,
   kondisi           text not null check (kondisi in
                       ('Sesuai','Sedang dikerjakan','Belum dikerjakan',
-                       'Terbengkalai','Rusak setelah selesai')),
+                       'Terbengkalai','Rusak setelah selesai',
+                       'Tidak ditemukan di lokasi')),
   temuan            text[] not null default '{}',   -- checklist "yang kamu lihat"
   catatan           text check (char_length(catatan) <= 600),
   foto_path         text,                           -- path di bucket foto-laporan
@@ -84,6 +69,12 @@ alter table public.laporan add column if not exists foto_langsung boolean;
 alter table public.laporan add column if not exists akurasi_meter int;
 create index if not exists laporan_waktu_idx on public.laporan (dibuat_pada);
 
+-- Daftar kondisi diperbarui: tambah "Tidak ditemukan di lokasi"
+-- (proyek tercatat, tetapi di lapangan tidak ada atau berbeda).
+alter table public.laporan drop constraint if exists laporan_kondisi_check;
+alter table public.laporan add constraint laporan_kondisi_check check (kondisi in
+  ('Sesuai','Sedang dikerjakan','Belum dikerjakan','Terbengkalai','Rusak setelah selesai','Tidak ditemukan di lokasi'));
+
 -- Jejak perubahan status (untuk halaman Lacak dan hitungan waktu respons).
 create table if not exists public.riwayat (
   id      bigint generated always as identity primary key,
@@ -106,6 +97,23 @@ create table if not exists public.dukungan (
 alter table public.dukungan add column if not exists laporan_kode text;
 create index if not exists dukungan_waktu_idx on public.dukungan (kode, dibuat_pada);
 
+-- Jejak perubahan publik: setiap perubahan dan penghapusan data laporan
+-- dan proyek dicatat otomatis oleh trigger database (bagian 3b), termasuk
+-- perubahan dan data baru yang dimasukkan langsung lewat dasbor Supabase.
+-- Siapa pun bisa membacanya; isinya tidak bisa diubah atau dihapus.
+create table if not exists public.jejak (
+  id         bigint generated always as identity primary key,
+  waktu      timestamptz not null default now(),
+  objek      text not null check (objek in ('laporan','proyek')),
+  kunci      text not null,                 -- kode laporan atau ID proyek
+  aksi       text not null check (aksi in ('ditambah','diubah','dihapus')),
+  jalur      text not null,                 -- petugas / admin / warga / dasbor database
+  perubahan  jsonb not null default '{}',   -- {"kolom": {"dari": ..., "ke": ...}}
+  alasan     text
+);
+create index if not exists jejak_kunci_idx on public.jejak (kunci);
+create index if not exists jejak_waktu_idx on public.jejak (waktu desc);
+
 -- Pengaturan rahasia (hash PIN). Tidak bisa dibaca dari website.
 create table if not exists public.pengaturan (
   kunci text primary key,
@@ -122,6 +130,7 @@ alter table public.laporan    enable row level security;
 alter table public.riwayat    enable row level security;
 alter table public.dukungan   enable row level security;
 alter table public.pengaturan enable row level security;
+alter table public.jejak      enable row level security;
 
 drop policy if exists "baca proyek"  on public.proyek;
 drop policy if exists "baca laporan" on public.laporan;
@@ -129,11 +138,13 @@ drop policy if exists "baca riwayat" on public.riwayat;
 create policy "baca proyek"  on public.proyek  for select to anon, authenticated using (true);
 create policy "baca laporan" on public.laporan for select to anon, authenticated using (true);
 create policy "baca riwayat" on public.riwayat for select to anon, authenticated using (true);
+drop policy if exists "baca jejak" on public.jejak;
+create policy "baca jejak"   on public.jejak   for select to anon, authenticated using (true);
 
 grant usage on schema public to anon, authenticated;
 revoke all on public.proyek, public.laporan, public.riwayat,
-              public.dukungan, public.pengaturan from anon, authenticated;
-grant select on public.proyek, public.laporan, public.riwayat to anon, authenticated;
+              public.dukungan, public.pengaturan, public.jejak from anon, authenticated;
+grant select on public.proyek, public.laporan, public.riwayat, public.jejak to anon, authenticated;
 
 -- Fungsi bantu disimpan di skema terpisah yang tidak terbuka ke API.
 create schema if not exists tally_privat;
@@ -246,6 +257,7 @@ declare
   v_langsung  boolean := coalesce(p_foto_langsung, false);
   v_akurasi   int := round(p_akurasi_meter);
 begin
+  perform set_config('tally.jalur', 'warga', true);   -- untuk jejak perubahan
   -- Rem banjir laporan (dijaga database)
   if (select count(*) from public.laporan
        where proyek_id = p_proyek_id and dibuat_pada > now() - interval '10 minutes') >= 10 then
@@ -263,7 +275,7 @@ begin
     raise exception 'Proyek % tidak ditemukan', p_proyek_id using errcode = 'P0002';
   end if;
   if p_kondisi is null or p_kondisi not in
-     ('Sesuai','Sedang dikerjakan','Belum dikerjakan','Terbengkalai','Rusak setelah selesai') then
+     ('Sesuai','Sedang dikerjakan','Belum dikerjakan','Terbengkalai','Rusak setelah selesai','Tidak ditemukan di lokasi') then
     raise exception 'Kondisi tidak dikenal' using errcode = '22023';
   end if;
   if p_catatan is not null and char_length(p_catatan) > 600 then
@@ -274,7 +286,8 @@ begin
   end if;
   if exists (select 1 from unnest(coalesce(p_temuan, '{}')) t where t not in
        ('Tidak ada pekerja di lokasi','Material dibiarkan menumpuk','Tidak ada papan proyek',
-        'Retak atau berlubang','Saluran mampet atau tergenang','Pekerjaan tampak rapi dan selesai')) then
+        'Papan proyek tanpa nilai kontrak','Retak atau berlubang','Saluran mampet atau tergenang',
+        'Membahayakan warga','Pekerjaan tampak rapi dan selesai')) then
     raise exception 'Butir temuan tidak dikenal' using errcode = '22023';
   end if;
   if p_foto_path is not null
@@ -381,6 +394,7 @@ declare
   v_kasus text;
   v_baru  int;
 begin
+  perform set_config('tally.jalur', 'warga', true);   -- untuk jejak perubahan
   if p_perangkat_id is null or char_length(p_perangkat_id) not between 8 and 64 then
     raise exception 'ID perangkat tidak valid' using errcode = '22023';
   end if;
@@ -503,6 +517,10 @@ begin
     raise exception 'Catatan untuk pelapor wajib diisi saat menutup atau menolak kasus' using errcode = '22023';
   end if;
 
+  -- Jejak perubahan: dicatat sebagai tindakan petugas, catatannya sebagai alasan
+  perform set_config('tally.jalur', 'petugas', true);
+  perform set_config('tally.alasan', coalesce(nullif(trim(p_catatan), ''), ''), true);
+
   update public.laporan
      set status = p_status,
          tanggapan = coalesce(nullif(trim(p_catatan), ''), tanggapan),
@@ -519,7 +537,11 @@ $$;
 
 -- Hapus laporan (khusus PIN admin tim), misalnya untuk laporan iseng.
 -- Menghapus induk berarti menghapus seluruh kasusnya.
-create or replace function public.hapus_laporan(p_kode text, p_pin text)
+-- Hapus laporan (khusus PIN admin tim). Alasan WAJIB diisi dan tercatat
+-- di Jejak perubahan publik bersama waktu penghapusannya, jadi penghapusan
+-- tidak bisa dilakukan diam-diam.
+drop function if exists public.hapus_laporan(text,text);
+create or replace function public.hapus_laporan(p_kode text, p_pin text, p_alasan text default null)
 returns json
 language plpgsql security definer
 set search_path = public, tally_privat
@@ -532,10 +554,19 @@ begin
   if coalesce(tally_privat.peran_pin(p_pin), '') <> 'admin' then
     raise exception 'Butuh PIN admin tim' using errcode = '28000';
   end if;
+  if char_length(coalesce(trim(p_alasan), '')) < 5 then
+    raise exception 'Alasan penghapusan wajib diisi (minimal 5 karakter). Alasan ini tampil di Jejak perubahan publik.'
+      using errcode = '22023';
+  end if;
+  if char_length(p_alasan) > 300 then
+    raise exception 'Alasan maksimal 300 karakter' using errcode = '22001';
+  end if;
   select * into v_lap from public.laporan where kode = upper(trim(p_kode));
   if not found then
     raise exception 'Kode % tidak ditemukan', p_kode using errcode = 'P0002';
   end if;
+  perform set_config('tally.jalur', 'admin', true);
+  perform set_config('tally.alasan', trim(p_alasan), true);
   if v_lap.induk_kode is not null then
     -- Laporan gabungan: kurangi hitungan warga hanya jika laporan ini
     -- dulu menambahnya (tercatat di tabel dukungan lewat laporan_kode).
@@ -553,19 +584,115 @@ begin
 end
 $$;
 
+-- ---------------------------------------------------------------------
+-- 3b. JEJAK PERUBAHAN (trigger)
+--     Berjalan otomatis setiap ada perubahan atau penghapusan baris di
+--     tabel laporan dan proyek, dari jalur mana pun: fungsi website,
+--     Table Editor, atau SQL Editor. Fungsi website memberi label jalur
+--     (warga/petugas/admin); selain itu tercatat "dasbor database".
+--     Baris BARU dicatat bila tidak masuk lewat formulir warga, misalnya
+--     laporan yang diketik langsung di Table Editor.
+-- ---------------------------------------------------------------------
+create or replace function tally_privat.catat_jejak()
+returns trigger
+language plpgsql security definer
+set search_path = public, tally_privat
+as $$
+declare
+  v_jalur   text := coalesce(nullif(current_setting('tally.jalur', true), ''), 'dasbor database');
+  v_alasan  text := nullif(current_setting('tally.alasan', true), '');
+  v_lama    jsonb := to_jsonb(old);
+  v_baru    jsonb;
+  v_beda    jsonb := '{}'::jsonb;
+  v_kolom   text;
+  v_abaikan text[] := array['diperbarui_pada'];
+begin
+  if tg_op = 'INSERT' then
+    if v_jalur = 'warga' then
+      return new;               -- laporan dari formulir: sudah tercatat di riwayat
+    end if;
+    v_baru := to_jsonb(new);
+    insert into public.jejak (objek, kunci, aksi, jalur, perubahan, alasan)
+    values (tg_table_name, coalesce(v_baru->>'kode', v_baru->>'id'), 'ditambah', v_jalur,
+            jsonb_strip_nulls(jsonb_build_object(
+              'proyek_id', v_baru->'proyek_id', 'nama', v_baru->'nama',
+              'kondisi', v_baru->'kondisi', 'status', v_baru->'status',
+              'sumber', v_baru->'sumber')),
+            v_alasan);
+    return new;
+  end if;
+
+  if tg_op = 'DELETE' then
+    insert into public.jejak (objek, kunci, aksi, jalur, perubahan, alasan)
+    values (tg_table_name, coalesce(v_lama->>'kode', v_lama->>'id'), 'dihapus', v_jalur,
+            jsonb_strip_nulls(jsonb_build_object(
+              'proyek_id', v_lama->'proyek_id', 'nama', v_lama->'nama',
+              'kondisi', v_lama->'kondisi', 'status', v_lama->'status',
+              'sumber', v_lama->'sumber', 'dibuat_pada', v_lama->'dibuat_pada')),
+            v_alasan);
+    return old;
+  end if;
+
+  v_baru := to_jsonb(new);
+  -- Hitungan warga memang berubah lewat tombol "Saya juga lihat ini";
+  -- yang dicatat hanya perubahan hitungan dari luar fungsi website.
+  if v_jalur <> 'dasbor database' then
+    v_abaikan := array_append(v_abaikan, 'jumlah_dukungan');
+  end if;
+  for v_kolom in select jsonb_object_keys(v_baru) loop
+    continue when v_kolom = any (v_abaikan);
+    if (v_lama -> v_kolom) is distinct from (v_baru -> v_kolom) then
+      v_beda := v_beda || jsonb_build_object(v_kolom,
+                  jsonb_build_object('dari', v_lama -> v_kolom, 'ke', v_baru -> v_kolom));
+    end if;
+  end loop;
+  if v_beda <> '{}'::jsonb then
+    insert into public.jejak (objek, kunci, aksi, jalur, perubahan, alasan)
+    values (tg_table_name, coalesce(v_baru->>'kode', v_baru->>'id'), 'diubah', v_jalur, v_beda, v_alasan);
+  end if;
+  return new;
+end
+$$;
+
+drop trigger if exists jejak_laporan on public.laporan;
+create trigger jejak_laporan after insert or update or delete on public.laporan
+  for each row execute function tally_privat.catat_jejak();
+drop trigger if exists jejak_proyek on public.proyek;
+create trigger jejak_proyek after insert or update or delete on public.proyek
+  for each row execute function tally_privat.catat_jejak();
+
+-- Isi jejak bersifat tetap: tidak bisa diubah, dihapus, atau dikosongkan,
+-- termasuk dari Table Editor dan SQL Editor.
+create or replace function tally_privat.jejak_tetap()
+returns trigger
+language plpgsql
+set search_path = public, tally_privat
+as $$
+begin
+  raise exception 'Jejak perubahan bersifat tetap: tidak bisa diubah atau dihapus'
+    using errcode = '42501';
+end
+$$;
+drop trigger if exists jejak_tetap on public.jejak;
+create trigger jejak_tetap before update or delete on public.jejak
+  for each row execute function tally_privat.jejak_tetap();
+drop trigger if exists jejak_tetap_kosongkan on public.jejak;
+create trigger jejak_tetap_kosongkan before truncate on public.jejak
+  for each statement execute function tally_privat.jejak_tetap();
+
 -- Hanya fungsi publik di atas yang boleh dipanggil dari website.
 revoke all on function public.kirim_laporan(text,text,text[],text,text,double precision,double precision,text,text,boolean,double precision) from public;
 revoke all on function public.dukung(text,text)           from public;
 revoke all on function public.lacak(text)                 from public;
 revoke all on function public.cek_pin(text)               from public;
 revoke all on function public.perbarui_kasus(text,text,text,text,text) from public;
-revoke all on function public.hapus_laporan(text,text)    from public;
+revoke all on function public.hapus_laporan(text,text,text) from public;
 grant execute on function public.kirim_laporan(text,text,text[],text,text,double precision,double precision,text,text,boolean,double precision) to anon, authenticated;
 grant execute on function public.dukung(text,text)        to anon, authenticated;
 grant execute on function public.lacak(text)              to anon, authenticated;
 grant execute on function public.cek_pin(text)            to anon, authenticated;
 grant execute on function public.perbarui_kasus(text,text,text,text,text) to anon, authenticated;
-grant execute on function public.hapus_laporan(text,text) to anon, authenticated;
+grant execute on function public.hapus_laporan(text,text,text) to anon, authenticated;
 
 -- ---------------------------------------------------------------------
 -- 4. PENYIMPANAN FOTO
@@ -588,7 +715,11 @@ create policy "tally unggah foto" on storage.objects
 
 -- ---------------------------------------------------------------------
 -- 5. DATA AWAL
+--    Proyek yang baru ditambahkan tercatat di Jejak perubahan dengan
+--    jalur "pembaruan schema.sql".
 -- ---------------------------------------------------------------------
+select set_config('tally.jalur', 'pembaruan schema.sql', false),
+       set_config('tally.alasan', 'Data awal proyek', false);
 
 -- PIN demo Panel Petugas untuk juri: 404404 (sesuai nama tim, error 404).
 -- PIN admin tim JANGAN ditulis di file ini; atur terpisah di SQL Editor.
@@ -631,9 +762,12 @@ on conflict (id) do nothing;
 
 -- ---------------------------------------------------------------------
 -- 6. PERBAIKAN DATA (aman dijalankan ulang)
+--    Tercatat di Jejak perubahan dengan jalur "pembaruan schema.sql".
 --    Mengganti catatan lokasi lama yang masih berupa catatan internal.
 --    Catatan yang sudah kalian ubah sendiri tidak disentuh.
 -- ---------------------------------------------------------------------
+select set_config('tally.jalur', 'pembaruan schema.sql', false),
+       set_config('tally.alasan', 'Merapikan catatan lokasi proyek', false);
 update public.proyek set catatan_lokasi = 'RSUD KiSA (RSUD Kota Depok), Jl. Raya Muchtar No. 99, Sawangan (OpenStreetMap)', diperbarui_pada = now()
  where id = 'PRJ-005' and catatan_lokasi like '%cek apakah sama dengan RSUD KiSA%';
 update public.proyek set catatan_lokasi = 'Titik tengah Kel. Depok Jaya. Paket ada di Jl. Mawar 3 RW 004; titik persisnya belum dipetakan', diperbarui_pada = now()
@@ -644,5 +778,11 @@ update public.proyek set catatan_lokasi = 'Sekitar Kel. Tugu. Paket ada di Kompl
  where id = 'PRJ-016' and catatan_lokasi like '%setelah survei%';
 update public.proyek set catatan_lokasi = 'Titik tengah Kel. Cilangkap. Paket ada di Perum Griya Telaga Permai RT 004 RW 019; titik persisnya belum dipetakan', diperbarui_pada = now()
  where id = 'PRJ-017' and catatan_lokasi like '%setelah survei%';
+
+select set_config('tally.jalur', '', false), set_config('tally.alasan', '', false);
+
+-- Minta API Supabase (PostgREST) membaca ulang struktur database,
+-- supaya tabel jejak dan fungsi baru langsung bisa dipanggil website.
+notify pgrst, 'reload schema';
 
 -- Selesai. Cek: select count(*) from proyek;  -- hasilnya 24

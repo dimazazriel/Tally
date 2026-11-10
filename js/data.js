@@ -36,6 +36,10 @@ const Data = (() => {
     fotoSesudahUrl: urlFoto(r.foto_sesudah_path), dibuatPada: r.dibuat_pada, diperbaruiPada: r.diperbarui_pada
   });
   const num = (v) => (v == null ? null : Number(v));
+  const keJejak = (r) => ({
+    id: r.id, waktu: r.waktu, objek: r.objek, kunci: r.kunci, aksi: r.aksi, jalur: r.jalur,
+    perubahan: r.perubahan || {}, alasan: r.alasan
+  });
 
   function urlFoto(path) {
     if (!path) return null;
@@ -106,7 +110,7 @@ const Data = (() => {
   }
 
   // ---------- Penyimpanan lokal (mode cadangan) ----------
-  const LK = 'tally_cadangan_laporan', RK = 'tally_cadangan_riwayat', DK = 'tally_cadangan_dukungan';
+  const LK = 'tally_cadangan_laporan', RK = 'tally_cadangan_riwayat', DK = 'tally_cadangan_dukungan', JK = 'tally_cadangan_jejak';
   const baca = (k) => { try { return JSON.parse(localStorage.getItem(k)) || []; } catch (e) { return []; } };
   const tulis = (k, v) => {
     try { localStorage.setItem(k, JSON.stringify(v)); }
@@ -284,27 +288,61 @@ const Data = (() => {
     if (!(ALUR_BOLEH[lama] || []).includes(status)) throw new Error(`Status kasus tidak bisa diubah dari "${lama}" ke "${status}"`);
     if (statusTutup(status) && !(catatan || '').trim()) throw new Error('Catatan untuk pelapor wajib diisi saat menutup atau menolak kasus');
     const kini = new Date().toISOString();
+    const jejakBaru = baca(JK);
     semua.filter((x) => x.kode === kasus || x.induk_kode === kasus).forEach((x) => {
+      const sebelum = { status: x.status, tanggapan: x.tanggapan, foto_sesudah_path: x.foto_sesudah_path };
       x.status = status;
       if (catatan) x.tanggapan = catatan;
       if (fotoSesudahPath) x.foto_sesudah_path = fotoSesudahPath;
       x.diperbarui_pada = kini;
+      // Tiru trigger jejak di database: catat kolom yang benar-benar berubah
+      const beda = {};
+      Object.keys(sebelum).forEach((k) => { if ((sebelum[k] ?? null) !== (x[k] ?? null)) beda[k] = { dari: sebelum[k] ?? null, ke: x[k] ?? null }; });
+      if (Object.keys(beda).length) {
+        jejakBaru.push({ id: Date.now() + jejakBaru.length, waktu: kini, objek: 'laporan', kunci: x.kode, aksi: 'diubah', jalur: 'petugas', perubahan: beda, alasan: catatan || null });
+      }
     });
     tulis(LK, semua);
+    tulis(JK, jejakBaru);
     const r = baca(RK);
     r.push({ kode: kasus, status, catatan: catatan || null, waktu: kini });
     tulis(RK, r);
     return { kode: kasus, status };
   }
 
-  async function hapusLaporan(kode, pin) {
+  // Penghapusan wajib beralasan; alasan tampil di Jejak perubahan publik.
+  async function hapusLaporan(kode, pin, alasan) {
     await siap();
-    if (mode === 'online') return rpc('hapus_laporan', { p_kode: kode, p_pin: pin });
-    throw new Error('Penghapusan hanya tersedia saat database terhubung');
+    if (mode !== 'online') throw new Error('Penghapusan hanya tersedia saat database terhubung');
+    try {
+      return await rpc('hapus_laporan', { p_kode: kode, p_pin: pin, p_alasan: alasan });
+    } catch (e) {
+      // Fungsi versi lama (tanpa alasan dan tanpa jejak): jangan dipakai.
+      if (e.kode === 'PGRST202') throw new Error('Database belum diperbarui. Jalankan supabase/schema.sql terbaru agar penghapusan tercatat di Jejak perubahan.');
+      throw e;
+    }
+  }
+
+  // Jejak perubahan publik. kunci: kode laporan / ID proyek (opsional).
+  // Mengembalikan null bila database belum punya tabel jejak.
+  async function jejak({ kunci = null, batas = 300 } = {}) {
+    await siap();
+    if (mode === 'online') {
+      let q = 'jejak?select=*&order=waktu.desc,id.desc&limit=' + batas;
+      if (kunci) q += '&kunci=eq.' + encodeURIComponent(kunci);
+      try {
+        return (await ambil(q)).map(keJejak);
+      } catch (e) {
+        if (e.status === 404 || e.kode === '42P01' || e.kode === 'PGRST205') return null;
+        throw e;
+      }
+    }
+    return baca(JK).filter((j) => !kunci || j.kunci === kunci)
+      .sort((a, b) => new Date(b.waktu) - new Date(a.waktu) || b.id - a.id).slice(0, batas).map(keJejak);
   }
 
   return {
-    siap, proyek, laporan, riwayat, unggahFoto, kirimLaporan, dukung, lacak, cekPin, perbaruiKasus, hapusLaporan, urlFoto,
+    siap, proyek, laporan, riwayat, unggahFoto, kirimLaporan, dukung, lacak, cekPin, perbaruiKasus, hapusLaporan, jejak, urlFoto,
     get mode() { return mode; },
     get adaDb() { return adaDb; },
     get urlDb() { return URL_DB; },

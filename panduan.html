@@ -22,8 +22,8 @@
       <nav class="navigasi" aria-label="Utama">
         <a href="peta.html">Peta proyek</a>
         <a href="skor.html">Papan skor</a>
-        <a href="tentang.html">Tentang</a>
-        <a href="panduan.html" aria-current="page">Panduan juri</a>
+        <a href="index.html#cara-kerja">Cara kerja</a>
+        <a class="navigasi__lapor" href="lapor.html"><svg aria-hidden="true"><use href="#i-kamera"></use></svg>Laporkan</a>
       </nav>
       <form class="lacak-cepat" action="lacak.html" role="search" aria-label="Lacak laporan">
         <label for="lacak-cepat-kode" class="sr">Kode lacak</label>
@@ -70,11 +70,12 @@
           <p>Ikuti urutan ini di laptop. Semua data tersimpan di database bersama, jadi perubahan langsung terlihat dari perangkat lain.</p>
           <ol class="langkah-uji">
             <li><b>Beranda</b><p>Baca Struk Belanja Kota dan daftar "Proyek yang paling perlu dicek" yang dipilih otomatis dari data.</p><span class="harapan">Terlihat: struk APBD 2025, empat proyek dengan sinyal, laporan terbaru.</span></li>
-            <li><b>Peta proyek</b><p>Saring sektor "Drainase", lalu klik satu proyek di daftar kiri. Seret kompas untuk memutar peta dan klik kompas untuk kembali menghadap utara. Tekan tombol lokasi untuk melihat posisimu, lalu pilih urutan "Terdekat dari lokasiku".</p><span class="harapan">Peta bergerak ke penanda; warna penanda = status lapangan, bentuk = ketepatan lokasi, lingkaran ungu = radius cek GPS.</span></li>
+            <li><b>Peta proyek</b><p>Ketik "cawangan" di kotak cari lalu tekan Enter. Setelah itu ketik "puskesmas bedahan" dan tekan Enter lagi. Tutup panel kiri dengan tombol di tepinya untuk melihat peta lebih luas, lalu tekan tombol lokasi untuk melihat posisimu.</p><span class="harapan">Salah ketik tetap ketemu: peta menampilkan area Kec. Sawangan, lalu terbang ke titik Puskesmas Bedahan dan membuka kartunya. Warna penanda = status lapangan, bentuk = ketepatan lokasi, lingkaran ungu = radius cek GPS, dan "Rute di Google Maps" membuka petunjuk arah.</span></li>
             <li><b>Struk proyek</b><p>Buka <a href="detail.html?id=PRJ-014">PRJ-014</a>. Bandingkan "Kata dokumen" (struk resmi) dengan "Kata warga", lalu baca sinyal kontrak di bawah 80% HPS.</p><span class="harapan">Stempel menunjukkan cocok, tidak cocok, atau belum dicek.</span></li>
             <li><b>Kirim laporan uji</b><p>Tekan "Laporkan kondisi di lapangan", pilih kondisi, lalu tekan "Buka kamera" dan potret apa saja (izinkan kamera dan lokasi). Laptop tanpa kamera bisa memakai unggahan galeri.</p><span class="harapan">Muncul resi TLY-XXXX dan stempel DITERIMA. Dari jauh, resi menulis "belum terverifikasi" beserta alasannya, karena laporan baru terverifikasi bila fotonya langsung, akurasi GPS ≤ 100 m, dan pelapor berada di radius proyek.</span></li>
             <li><b>Uji laporan ganda</b><p>Buka proyek yang sama di peramban lain atau mode penyamaran, lalu tekan "Saya juga lihat ini", atau kirim laporan dengan kondisi yang sama.</p><span class="harapan">Tidak ada tiket baru: laporan kedua digabung ke kasus pertama dan hitungan warga bertambah. Perangkat yang sama tidak bisa menambah hitungan dua kali.</span></li>
             <li><b>Panel petugas</b><p>Buka <a href="petugas.html">Panel petugas</a>, masuk dengan PIN demo, pilih kasus tadi, lihat foto bercap waktu dan hasil cek buktinya, lalu tekan "Verifikasi bukti". Laporan iseng bisa ditolak dengan catatan.</p><span class="harapan">Status berubah dan tercatat di linimasa.</span></li>
+            <li><b>Jejak perubahan</b><p>Buka <a href="jejak.html">Jejak perubahan</a> dari kaki halaman.</p><span class="harapan">Perubahan status tadi tercatat otomatis: waktu, nilai lama dan baru, jalur "Panel petugas", dan catatanmu. Suntingan langsung di dasbor database juga muncul di sini dan tidak bisa dihapus.</span></li>
             <li><b>Lacak</b><p>Masukkan kode tadi di kotak Lacak di kanan atas.</p><span class="harapan">Linimasa, sisa batas waktu 7 hari, dan catatan petugas tampil.</span></li>
             <li><b>Papan skor</b><p>Buka <a href="skor.html">Papan skor</a> dan ganti kelompok ke kecamatan atau penyedia.</p><span class="harapan">Kasus tadi ikut dihitung; sepuluh laporan untuk satu masalah tetap satu kasus.</span></li>
           </ol>
@@ -89,12 +90,12 @@
           <div class="arsitektur" aria-label="Diagram arsitektur">
             <div><b>Website statis</b>HTML, CSS, JavaScript murni, MapLibre GL JS dengan peta dasar OpenFreeMap (data OpenStreetMap). Di-hosting di Vercel.</div>
             <span aria-hidden="true">REST + RPC</span>
-            <div><b>Supabase</b>PostgreSQL dengan Row Level Security dan 6 fungsi; Storage untuk foto.</div>
+            <div><b>Supabase</b>PostgreSQL dengan Row Level Security, 6 fungsi, dan trigger jejak perubahan; Storage untuk foto.</div>
             <span aria-hidden="true">diisi dari</span>
             <div><b>Data resmi</b>LPSE Kota Depok, CaLK 2025, berita; disalin ke tabel proyek dan file JSON.</div>
           </div>
           <p><b>Mode cadangan:</b> kalau database tidak terjangkau, website otomatis membaca <code>data/proyek.json</code> dan menyimpan laporan di browser, sehingga demo tetap berjalan. Status koneksi tampil di kaki setiap halaman.</p>
-          <p><b>Peta situs:</b> Beranda → Peta proyek → Struk proyek → Lapor → Lacak; Papan skor, Tentang, Panduan, Sistem desain, dan Panel petugas bisa dibuka dari menu dan kaki halaman.</p>
+          <p><b>Peta situs:</b> Beranda → Peta proyek → Struk proyek → Lapor → Lacak. Menu atas berisi Peta proyek, Papan skor, Cara kerja, tombol Laporkan, dan kotak Lacak. Jejak perubahan, Tentang, Panduan, Sistem desain, dan Panel petugas ada di kaki setiap halaman.</p>
 
           <h2 id="database">Database</h2>
           <table>
@@ -104,6 +105,7 @@
               <tr><td><code>laporan</code></td><td>Kondisi, temuan, foto, jarak GPS, status, <code>induk_kode</code> untuk menggabungkan laporan ganda, jumlah dukungan</td><td>Baca</td></tr>
               <tr><td><code>riwayat</code></td><td>Setiap perubahan status beserta catatan petugas dan waktunya</td><td>Baca</td></tr>
               <tr><td><code>dukungan</code></td><td>"Saya juga lihat ini", unik per kasus per perangkat</td><td>Tidak ada</td></tr>
+              <tr><td><code>jejak</code></td><td>Catatan otomatis (trigger) setiap perubahan, penghapusan, dan data yang dimasukkan langsung ke tabel laporan dan proyek, dari jalur mana pun; tidak bisa diubah atau dihapus</td><td>Baca</td></tr>
               <tr><td><code>pengaturan</code></td><td>Hash PIN petugas dan admin</td><td>Tidak ada</td></tr>
             </tbody>
           </table>
@@ -129,12 +131,13 @@
 
           <h2 id="batasan">Batasan yang diketahui</h2>
           <ul>
-            <li>Panel petugas memakai PIN demo, belum akun login per petugas dan per dinas. PIN demo bisa dipakai siapa pun yang membaca halaman ini; semua perubahannya tercatat di linimasa, dan tim menonaktifkannya setelah penjurian.</li>
+            <li>Panel petugas memakai PIN demo, belum akun login per petugas dan per dinas. PIN demo bisa dipakai siapa pun yang membaca halaman ini; semua perubahannya tercatat di linimasa dan Jejak perubahan, dan tim menonaktifkannya setelah penjurian.</li>
             <li>Hitungan warga per kasus dibatasi satu per perangkat. Jumlah laporan dibatasi database (10 per proyek dan 60 seluruhnya per 10 menit), tetapi belum ada CAPTCHA, jadi bot yang sabar masih bisa mengirim laporan pelan-pelan. Laporan iseng ditangani dengan "Tolak" dan dihapus admin.</li>
             <li>Foto langsung, waktu, dan lokasi dicatat oleh perangkat pelapor. Aplikasi GPS palsu atau kamera virtual masih bisa menipu, jadi tanda terverifikasi adalah penyaring awal, bukan bukti mutlak; verifikasi petugas tetap diperlukan.</li>
             <li>15 dari 24 proyek koordinatnya masih titik tengah kelurahan atau kecamatan, sehingga radius ceknya dilonggarkan menjadi 1.500 m.</li>
             <li>Data proyek adalah salinan per 24 Oktober 2026, belum sinkron otomatis dengan LPSE.</li>
             <li>Status tindak lanjut saat ini diubah tim sebagai simulasi petugas, belum oleh dinas sungguhan.</li>
+            <li>Jejak perubahan dijaga database, tetapi pemilik database secara teknis masih bisa mematikan pencatatnya dengan sengaja. Rencananya, jejak disalin setiap hari ke arsip publik di luar Tally.</li>
           </ul>
           <p><b>Rencana pengembangan:</b> CAPTCHA (Cloudflare Turnstile) yang diverifikasi di server, sinkronisasi otomatis dengan LPSE/SiRUP, akun petugas per dinas, meneruskan kasus terverifikasi ke SP4N-LAPOR!, notifikasi WhatsApp untuk pelapor, dan mode luring (PWA) untuk lokasi dengan sinyal lemah.</p>
         </article>
@@ -157,6 +160,7 @@
             <li><a href="lapor.html">Laporkan proyek</a></li>
             <li><a href="lacak.html">Lacak laporan</a></li>
             <li><a href="skor.html">Papan skor</a></li>
+            <li><a href="jejak.html">Jejak perubahan</a></li>
           </ul>
         </nav>
         <nav aria-labelledby="kaki-tentang">
